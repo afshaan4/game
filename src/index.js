@@ -9,7 +9,7 @@ const config = {
     physics: {
         default: 'arcade',
         arcade: {
-            gravity: { y: 1000 },
+            gravity: { y: 2000 },
             debug: false
         }
     },
@@ -20,11 +20,16 @@ const config = {
     }
 };
 
+// fatt oof
 const game = new Phaser.Game(config);
-const JUMP_TIME = 200;
 let player;
 let platforms;
 let boosting;
+let cursors;
+let lastTime = Date.now();;
+let curTime;
+let jumpAcc = -100000;
+
 
 function preload() {
     this.load.image('ground', 'assets/platform.png');
@@ -37,10 +42,11 @@ function create() {
     platforms.create(400, 568, 'ground').setScale(2).refreshBody();
     platforms.create(50, 250, 'ground');
 
-    player = this.physics.add.image(100, 450, 'guy');
+    player = this.physics.add.image(100, 200, 'guy');
     player.setCollideWorldBounds(true);
     player.isOnFloor;
     player.body.setMaxSpeed(300);
+    player.setDragX(800);
 
     this.keys = this.input.keyboard.addKeys({
         left: Phaser.Input.Keyboard.KeyCodes.LEFT,
@@ -48,40 +54,39 @@ function create() {
         up: Phaser.Input.Keyboard.KeyCodes.UP
     });
 
+    cursors = this.input.keyboard.createCursorKeys();
+
     this.physics.add.collider(player, platforms);
 }
 
 function update() {
-    player.isOnFloor = player.body.touching.down;
-    let dragMult = player.isOnFloor ? 1 : 0;
-    let accMult = player.isOnFloor ? 1 : 0.7;
+    // le dt
+    curTime = Date.now();
+    let dt = curTime - lastTime;
+    lastTime = curTime;
 
     if (this.keys.left.isDown) {
-        player.setAccelerationX(-600 * accMult);
+        player.setAccelerationX(-200 * dt);
     } else if (this.keys.right.isDown) {
-        player.setAccelerationX(600 * accMult);
+        player.setAccelerationX(200 * dt);
     } else {
         player.setAccelerationX(0);
-        player.setDragX(900 * dragMult);
     }
 
-    if (this.keys.up.isDown) {
-        let didJump = jump();
-        if (!didJump && this.keys.up.getDuration() > JUMP_TIME) {
-            stopJumpBoost();
-        }
+    if (this.keys.up.isDown && player.body.touching.down) {
+        player.setAccelerationY(jumpAcc);
+    } else {
+        player.setAccelerationY(0);
     }
-
-    if (!this.keys.up.isDown) stopJumpBoost();
 }
 
-function jump() {
-    const JUMP_SPEED = 300;
-    if (player.isOnFloor || boosting) {
-        player.body.velocity.y = -JUMP_SPEED;
+function jump(dt, acc) {
+    let canJump = player.body.touching.down;
+    if (canJump || boosting) {
         boosting = true;
+        player.setVelocityY(acc * dt);
     }
-    return player.isOnFloor;
+    return canJump;
 }
 
 function stopJumpBoost() {
