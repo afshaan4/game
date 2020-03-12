@@ -1,0 +1,16 @@
+{
+  "name": "aaaaaaaaaaaaa",
+  "version": "1.0.0",
+  "description": "bruh",
+  "main": "index.js",
+  "scripts": {
+    "dev": "webpack"
+  },
+  "author": "cautiouspotato, skittlemittle",
+  "license": "MIT",
+  "dependencies": {
+    "phaser": "^3.22.0",
+    "webpack": "^4.42.0",
+    "webpack-cli": "^3.3.11"
+  }
+}
