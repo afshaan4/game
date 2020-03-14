@@ -9,7 +9,7 @@ const config = {
     physics: {
         default: 'arcade',
         arcade: {
-            gravity: { y: 2000 },
+            gravity: { y: 1200 },
             debug: false
         }
     },
@@ -28,8 +28,8 @@ let boosting;
 let cursors;
 let lastTime = Date.now();;
 let curTime;
-let jumpAcc = -100000;
-
+const fallMult = 0.00011; // magic number
+const lowJumpMult = 1 * Math.pow(10, -24); // needs tuning
 
 function preload() {
     this.load.image('ground', 'assets/platform.png');
@@ -47,14 +47,7 @@ function create() {
     player.body.setMaxSpeed(400);
     // le friction
     player.setDragX(1600);
-    player.setDragY(100);
-    player.isOnFloor;
-
-    // cursors = this.input.keyboard.addKeys({
-    //     left: Phaser.Input.Keyboard.KeyCodes.LEFT,
-    //     right: Phaser.Input.Keyboard.KeyCodes.RIGHT,
-    //     up: Phaser.Input.Keyboard.KeyCodes.UP
-    // });
+    // player.setDragY(100);
 
     cursors = this.input.keyboard.createCursorKeys();
 
@@ -67,8 +60,8 @@ function update() {
     let dt = curTime - lastTime;
     lastTime = curTime;
 
-    // TODO its fucked, jumping while running makes you fall slower??
-    // also jumping and running feels wrong
+    // TODO jumping while running makes you fall slower??
+    // also jumping and running feels wrong, it jitters
     if (cursors.left.isDown) {
         player.setAccelerationX(-100 * dt);
     } else if (cursors.right.isDown) {
@@ -81,6 +74,16 @@ function update() {
         player.setAccelerationY(-Math.pow(10, 5));
     } else {
         player.setAccelerationY(0);
+    }
+
+    // fall faster than you rise
+    // if falling increase gravity by fallmult
+    if (player.body.velocity.y > 0) {
+        player.body.velocity.y *= config.physics.arcade.gravity.y
+                                * fallMult * dt;
+    // handle variable jump height by increasing gravity when button released.
+    } else if (player.body.velocity.y < 0 && !cursors.up.isDown) {
+        player.body.velocity.y *= -(lowJumpMult);
     }
 }
 
