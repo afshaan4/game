@@ -44,15 +44,17 @@ function create() {
 
     player = this.physics.add.image(100, 200, 'guy');
     player.setCollideWorldBounds(true);
+    player.body.setMaxSpeed(400);
+    // le friction
+    player.setDragX(1600);
+    player.setDragY(100);
     player.isOnFloor;
-    player.body.setMaxSpeed(300);
-    player.setDragX(800);
 
-    this.keys = this.input.keyboard.addKeys({
-        left: Phaser.Input.Keyboard.KeyCodes.LEFT,
-        right: Phaser.Input.Keyboard.KeyCodes.RIGHT,
-        up: Phaser.Input.Keyboard.KeyCodes.UP
-    });
+    // cursors = this.input.keyboard.addKeys({
+    //     left: Phaser.Input.Keyboard.KeyCodes.LEFT,
+    //     right: Phaser.Input.Keyboard.KeyCodes.RIGHT,
+    //     up: Phaser.Input.Keyboard.KeyCodes.UP
+    // });
 
     cursors = this.input.keyboard.createCursorKeys();
 
@@ -65,16 +67,18 @@ function update() {
     let dt = curTime - lastTime;
     lastTime = curTime;
 
-    if (this.keys.left.isDown) {
-        player.setAccelerationX(-200 * dt);
-    } else if (this.keys.right.isDown) {
-        player.setAccelerationX(200 * dt);
+    // TODO its fucked, jumping while running makes you fall slower??
+    // also jumping and running feels wrong
+    if (cursors.left.isDown) {
+        player.setAccelerationX(-100 * dt);
+    } else if (cursors.right.isDown) {
+        player.setAccelerationX(100 * dt);
     } else {
         player.setAccelerationX(0);
     }
 
-    if (this.keys.up.isDown && player.body.touching.down) {
-        player.setAccelerationY(jumpAcc);
+    if (cursors.up.isDown && player.body.touching.down) {
+        player.setAccelerationY(-Math.pow(10, 5));
     } else {
         player.setAccelerationY(0);
     }
