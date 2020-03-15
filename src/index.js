@@ -24,7 +24,7 @@ const config = {
 const game = new Phaser.Game(config);
 let player;
 let platforms;
-let boosting;
+let inputs = []; // what keys are pressed
 let cursors;
 let lastTime = Date.now();;
 let curTime;
@@ -47,9 +47,17 @@ function create() {
     player.body.setMaxSpeed(400);
     // le friction
     player.setDragX(1600);
-    // player.setDragY(100);
 
+    /* player inputs amirite */
     cursors = this.input.keyboard.createCursorKeys();
+
+    document.addEventListener('keydown', (event) => {
+        if (!inputs.includes(event.key)) inputs.push(event.key);
+    });
+    document.addEventListener('keyup', (event) => {
+        let idx = inputs.indexOf(event.key);
+        if (idx > -1) inputs.splice(idx, 1);
+    });
 
     this.physics.add.collider(player, platforms);
 }
@@ -60,42 +68,28 @@ function update() {
     let dt = curTime - lastTime;
     lastTime = curTime;
 
-    // TODO jumping while running makes you fall slower??
-    // also jumping and running feels wrong, it jitters
-    if (cursors.left.isDown) {
+    // TODO strafing while falling is very slow, velocity.x seems to be
+    // getting effected by the falling thing
+    // cursors.left.isDown
+    if (inputs.includes('ArrowLeft')) {
         player.setAccelerationX(-100 * dt);
-    } else if (cursors.right.isDown) {
+    } else if (inputs.includes('ArrowRight')) {
         player.setAccelerationX(100 * dt);
     } else {
         player.setAccelerationX(0);
     }
 
-    if (cursors.up.isDown && player.body.touching.down) {
-        player.setAccelerationY(-Math.pow(10, 5));
-    } else {
-        player.setAccelerationY(0);
+    if (inputs.includes('ArrowUp') && player.body.touching.down) {
+        player.setVelocityY(-Math.pow(10, 5));
     }
 
     // fall faster than you rise
     // if falling increase gravity by fallmult
     if (player.body.velocity.y > 0) {
         player.body.velocity.y *= config.physics.arcade.gravity.y
-                                * fallMult * dt;
-    // handle variable jump height by increasing gravity when button released.
-    } else if (player.body.velocity.y < 0 && !cursors.up.isDown) {
-        player.body.velocity.y *= -(lowJumpMult);
+            * fallMult * dt;
+        // handle variable jump height by increasing gravity when button released.
+    } else if (player.body.velocity.y < 0 && !inputs.includes('ArrowUp')) {
+        player.body.velocity.y *= -lowJumpMult;
     }
-}
-
-function jump(dt, acc) {
-    let canJump = player.body.touching.down;
-    if (canJump || boosting) {
-        boosting = true;
-        player.setVelocityY(acc * dt);
-    }
-    return canJump;
-}
-
-function stopJumpBoost() {
-    boosting = false;
 }
