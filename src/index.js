@@ -1,7 +1,6 @@
-// bruuuuh
+// entry point
 import * as Phaser from "phaser";
 import TestScene from "./scene.js";
-
 
 const config = {
     type: Phaser.AUTO,
