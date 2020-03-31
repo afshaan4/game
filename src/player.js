@@ -2,7 +2,6 @@
   make, update, then destroy when done with it
 */
 
-// player physics mainly
 export default class Player {
     constructor(scene, x, y) {
         this.scene = scene;
@@ -28,7 +27,7 @@ export default class Player {
         const onGround = this.sprite.body.blocked.down;
         const acceleration = onGround ? 600 : 200;
         const gravity = this.scene.physics.config.gravity.y;
-        const fallMult = 0.05;
+        const fallMult = 0.04;
         const lowJumpMult = 0.5;
 
         // sometimes the thing just runs off
