@@ -1,6 +1,7 @@
 //  the funny has arrived
 import * as Phaser from "phaser";
 import Player from "./player";
+import Slime from "./slime.js"
 
 export default class TestScene extends Phaser.Scene {
     // lol sprite
@@ -35,7 +36,7 @@ export default class TestScene extends Phaser.Scene {
 
         // spawn in player
         const spawn = map.findObject('Objects', obj => obj.name === 'Spawn Point');
-        this.player = new Player(this, spawn.x, spawn.y);
+        this.player = new Slime(this, spawn.x, spawn.y); // OOOF
 
         // physics
         this.groundLayer.setCollisionByProperty({ collides: true });

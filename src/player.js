@@ -3,13 +3,11 @@
 */
 
 export default class Player {
-    constructor(scene, x, y) {
+    constructor(scene, x, y, fMult = 0.04, ljMult = 0.5) {
         this.scene = scene;
-
-        this.sprite = scene.physics.add
-            .sprite(x, y, "player", 0)
-            .setDrag(1000, 0)
-            .setMaxVelocity(300, 400);
+        this.gravity = this.scene.physics.config.gravity.y;
+        this.fallMult = fMult;
+        this.lowJumpMult = ljMult;
 
         // le inputs
         const { LEFT, RIGHT, UP, W, A, D } = Phaser.Input.Keyboard.KeyCodes;
@@ -23,42 +21,39 @@ export default class Player {
         });
     }
 
-    update(delta) {
-        const onGround = this.sprite.body.blocked.down;
-        const acceleration = onGround ? 600 : 200;
-        const gravity = this.scene.physics.config.gravity.y;
-        const fallMult = 0.04;
-        const lowJumpMult = 0.5;
+    update(delta, sprite) {
+        const onGround = sprite.body.blocked.down;
+        const acceleration = onGround ? 600 : 200; //TODO: are those MAGICC NUMBERS?
 
         // sometimes the thing just runs off
-        this.sprite.setAccelerationX(0);
+        sprite.setAccelerationX(0);
 
         // Apply horizontal acceleration when left/a or right/d are applied
         if (this.keys.left.isDown || this.keys.a.isDown) {
-            this.sprite.setAccelerationX(-acceleration);
+            sprite.setAccelerationX(-acceleration);
             // No need to have a separate set of graphics for running to the
             // left & to the right. Instead we can just mirror the sprite.
-            this.sprite.setFlipX(true);
+            sprite.setFlipX(true);
         } else if (this.keys.right.isDown || this.keys.d.isDown) {
-            this.sprite.setAccelerationX(acceleration);
-            this.sprite.setFlipX(false);
+            sprite.setAccelerationX(acceleration);
+            sprite.setFlipX(false);
         }
-        // no
+        // no do the run
         if (this.keys.left.isUp && this.keys.right.isUp) {
-            this.sprite.setAccelerationX(0);
+            sprite.setAccelerationX(0);
         }
 
         // jump stuff
         if (onGround && (this.keys.up.isDown || this.keys.w.isDown)) {
-            this.sprite.setVelocityY(-500);
+            sprite.setVelocityY(-500);
         }
         // make the jump feel nice: fall faster than you rise
-        if (this.sprite.body.velocity.y > 0) {
-            this.sprite.body.velocity.y *= gravity * fallMult * delta;
+        if (sprite.body.velocity.y > 0) {
+            sprite.body.velocity.y *= this.gravity * this.fallMult * delta;
             // handle variable jump height by increasing gravity
             // if the jump button is released while climbing.
-        } else if (this.sprite.body.velocity.y < 0 && !this.keys.up.isDown) {
-            this.sprite.body.velocity.y += lowJumpMult * delta;
+        } else if (sprite.body.velocity.y < 0 && !this.keys.up.isDown) {
+            sprite.body.velocity.y += this.lowJumpMult * delta;
         }
     }
 
