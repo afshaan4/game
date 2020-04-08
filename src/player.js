@@ -3,21 +3,32 @@
 */
 
 export default class Player {
-    constructor(scene, x, y, fMult = 0.04, ljMult = 0.5) {
+    constructor(scene, fMult = 0.04, ljMult = 0.5) {
         this.scene = scene;
         this.gravity = this.scene.physics.config.gravity.y;
         this.fallMult = fMult;
         this.lowJumpMult = ljMult;
 
         // le inputs
-        const { LEFT, RIGHT, UP, W, A, D } = Phaser.Input.Keyboard.KeyCodes;
+        const {
+            LEFT,
+            RIGHT,
+            UP,
+            W,
+            A,
+            D,
+            Z,
+            X
+        } = Phaser.Input.Keyboard.KeyCodes;
         this.keys = scene.input.keyboard.addKeys({
             left: LEFT,
             right: RIGHT,
             up: UP,
             w: W,
             a: A,
-            d: D
+            d: D,
+            z: Z,
+            x: X
         });
     }
 
@@ -55,9 +66,5 @@ export default class Player {
         } else if (sprite.body.velocity.y < 0 && !this.keys.up.isDown) {
             sprite.body.velocity.y += this.lowJumpMult * delta;
         }
-    }
-
-    destroy() {
-        this.sprite.destroy();
     }
 }
