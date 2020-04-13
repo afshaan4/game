@@ -14,7 +14,7 @@ export default class TestScene extends Phaser.Scene {
                 spacing: 0
             }
         );
-        // oof
+
         this.load.image('fin_line', 'assets/finish_line.png');
         this.load.image('tiles', 'assets/tilesets/default.png');
         this.load.tilemapTiledJSON('map', 'assets/maps/platformer-simple.json');
@@ -26,7 +26,7 @@ export default class TestScene extends Phaser.Scene {
         const map = this.make.tilemap({
             key: 'map'
         });
-        // tilesetname(name of tileset, set by map maker), key
+        // tilesetname(name of tileset set by map maker), key
         const tiles = map.addTilesetImage('0x72-industrial-tileset-32px-extruded', 'tiles');
 
         // make the layers

@@ -1,5 +1,5 @@
 /*
-  make, update, then destroy when done with it
+  generic player
 */
 
 export default class Player {
@@ -14,9 +14,6 @@ export default class Player {
             LEFT,
             RIGHT,
             UP,
-            W,
-            A,
-            D,
             Z,
             X
         } = Phaser.Input.Keyboard.KeyCodes;
@@ -24,9 +21,6 @@ export default class Player {
             left: LEFT,
             right: RIGHT,
             up: UP,
-            w: W,
-            a: A,
-            d: D,
             z: Z,
             x: X
         });
@@ -40,12 +34,12 @@ export default class Player {
         sprite.setAccelerationX(0);
 
         // Apply horizontal acceleration when left/a or right/d are applied
-        if (this.keys.left.isDown || this.keys.a.isDown) {
+        if (this.keys.left.isDown) {
             sprite.setAccelerationX(-acceleration);
             // No need to have a separate set of graphics for running to the
             // left & to the right. Instead we can just mirror the sprite.
             sprite.setFlipX(true);
-        } else if (this.keys.right.isDown || this.keys.d.isDown) {
+        } else if (this.keys.right.isDown) {
             sprite.setAccelerationX(acceleration);
             sprite.setFlipX(false);
         }
@@ -55,16 +49,17 @@ export default class Player {
         }
 
         // jump stuff
-        if (onGround && (this.keys.up.isDown || this.keys.w.isDown)) {
+        if (onGround && (this.keys.up.isDown)) {
             sprite.setVelocityY(-500);
         }
+
         // make the jump feel nice: fall faster than you rise
         if (sprite.body.velocity.y > 0) {
             sprite.body.velocity.y *= this.gravity * this.fallMult * delta;
             // handle variable jump height by increasing gravity
             // if the jump button is released while climbing.
         } else if (sprite.body.velocity.y < 0 && !this.keys.up.isDown) {
-            sprite.body.velocity.y += this.lowJumpMult * delta;
+            sprite.body.velocity.y *= -this.lowJumpMult * delta;
         }
     }
 }
