@@ -54,6 +54,7 @@ export default class Player {
         }
 
         // make the jump feel nice: fall faster than you rise
+        // TODO: somehow this broke
         if (sprite.body.velocity.y > 0) {
             sprite.body.velocity.y *= this.gravity * this.fallMult * delta;
             // handle variable jump height by increasing gravity
