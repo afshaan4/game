@@ -8,6 +8,7 @@ export default class Player {
         this.gravity = this.scene.physics.config.gravity.y;
         this.fallMult = fMult;
         this.lowJumpMult = ljMult;
+        this.onGround = true;
 
         // le inputs
         const {
@@ -27,8 +28,8 @@ export default class Player {
     }
 
     update(delta, sprite) {
-        const onGround = sprite.body.blocked.down;
-        const acceleration = onGround ? 600 : 200; //TODO: are those MAGICC NUMBERS?
+        this.onGround = sprite.body.blocked.down;
+        const acceleration = this.onGround ? 600 : 200; //TODO: are those MAGICC NUMBERS?
 
         // sometimes the thing just runs off
         sprite.setAccelerationX(0);
@@ -49,7 +50,7 @@ export default class Player {
         }
 
         // jump stuff
-        if (onGround && (this.keys.up.isDown)) {
+        if (this.onGround && this.keys.up.isDown) {
             sprite.setVelocityY(-500);
         }
 
