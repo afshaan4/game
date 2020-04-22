@@ -17,14 +17,14 @@ export default class Slime extends Player {
         // events
         // this.keys.x.on('down', this.attack);
         this.keys.z.on('down', () => {
+            this.canLaunch = this.onGround ? true : false;
             this.extending = true;
             this.sprite.originY = 0;
+            console.log("yeet");
         });
-        this.keys.z.on('up', () => { 
+        this.keys.z.on('up', () => {
             this.extending = false;
             this.sprite.originY = 1;
-            this.canLaunch = (this.onGround ? true : false);
-            console.log(`${this.onGround}, ${this.canLaunch}`);
         });
     }
 
@@ -37,7 +37,7 @@ export default class Slime extends Player {
                 this.length += 0.5;
                 this.sprite.setScale(1, this.length);
             } else this.extending = false;
-        // >>squish and jump<<
+            // >>squish and jump<<
         } else if (this.length >= 1.3) {
             this.length -= 0.3;
             this.sprite.setScale(1, this.length);
