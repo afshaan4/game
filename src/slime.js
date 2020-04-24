@@ -7,7 +7,8 @@ export default class Slime extends Player {
         this.length = 1;
         this.extending = false;
         this.canLaunch = false;
-        this.extbit = undefined;
+        this.canExt = false;
+        this.slExt;
 
         this.sprite = this.scene.physics.add
             .sprite(x, y, 'player', 0)
@@ -18,15 +19,14 @@ export default class Slime extends Player {
 
         /* event handlers */
         this.keys.z.on('down', () => {
-            this.canLaunch = this.onGround ? true : false;
+            if (this.slExt !== undefined) this.destroyExtension(); // lmao
+            this.canExt = this.onGround ? true : false;
             this.extending = true;
-            // this.sprite.originY = 0;
         });
         this.keys.z.on('up', () => {
             this.extending = false;
             this.spawnExtension();
             this.length = 1;
-            // this.sprite.originY = 1;
         });
     }
 
@@ -36,17 +36,19 @@ export default class Slime extends Player {
     // spawn in the extension bit to jump off
     spawnExtension() {
         // TODO: rewrite so this pushes up the other sprite.
-        if (this.extbit === undefined) {
-            this.extbit = this.scene.physics.add
+        if (this.canExt) {
+            this.slExt = this.scene.physics.add
                 .sprite(this.sprite.x, this.sprite.y + this.length * 2, 'player', 0)
-                .setScale(1, this.length - 1)
-                .body.allowGravity = false;
+                .setScale(1, this.length - 1);
+
+            this.slExt.body.allowGravity = false;
+                
         }
     }
 
     destroyExtension() {
         // fade out
-        this.extbit.destroy();
+        this.slExt.destroy();
     }
 
     // Public methods
