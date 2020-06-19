@@ -48,7 +48,7 @@ export default class Player {
     } = Phaser.Input.Keyboard.KeyCodes;
     this.keys = scene.input.keyboard.addKeys(
       // TODO: janky ass input selector
-      this.id === 1 ? {
+      this.id === 0 ? {
         left: LEFT,
         right: RIGHT,
         up: UP,

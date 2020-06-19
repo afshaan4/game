@@ -45,6 +45,7 @@ export default class MainScene extends Phaser.Scene {
     // rectangle body (similar to AP).
     this.matter.world.convertTilemapLayer(groundLayer);
     this.matter.world.convertTilemapLayer(lavaLayer);
+    this.matter.world.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
 
     // The spawn point is set using a point object inside of Tiled (within the "Spawn" object layer)
     this.players = [];
@@ -52,25 +53,24 @@ export default class MainScene extends Phaser.Scene {
     this.players.push(new Char(this, x, y, 1));
     this.players.push(new Char(this, x, y, 0));
 
-    /* make a camera for each player */
-    const cam1 = this.cameras.add(0, window.innerHeight, window.innerWidth / 2, window.innerHeight, name = "1");
-    const cam2 = this.cameras.add(window.innerWidth / 2, window.innerHeight, window.innerWidth / 2, window.innerHeight, name = "2");
-    this.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
-    this.matter.world.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
+    /* make a camera for each player, yuck make better */
+    const {width, height} = this.sys.game.canvas;
+    this.cams = [];
+    this.cameras.main.setSize(width / 2, height);
+    const cam0 = this.cameras.main;
+    const cam1 = this.cameras.add(width / 2 + 2, 0, width / 2, height);
+    this.cams.push(cam0);
+    this.cams.push(cam1);
 
-    // Smoothly follow the player
-    this.cameras.main.startFollow(this.players[1].sprite, false, 0.5, 0.5);
+    // follow them players
+    for (let i = 0; i < this.players.length; i++) {
+      this.cams[i].setBounds(0, 0, map.widthInPixels, map.heightInPixels);
+      this.cams[i].startFollow(this.players[i].sprite, false, 0.5, 0.5);
+    }
 
-    this.players.forEach(player => {
-      this.unsubscribePlayerCollide = this.matterCollision.addOnCollideStart({
-        objectA: player.sprite,
-        callback: this.onPlayerCollide,
-        context: this
-      });
-    });
+    /* =============map features============= */
 
     // Load up some crates from the "Crates" object layer created in Tiled
-    // wholesome 100 keanu chungus everyone liked that thank you for the gold kind stranger reddit moment REDDIT MOMENT AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
     map.getObjectLayer("Crates").objects.forEach(crateObject => {
       const { x, y, width, height } = crateObject;
 
@@ -97,6 +97,16 @@ export default class MainScene extends Phaser.Scene {
         isStatic: true // It shouldn't move
       }
     );
+
+    /* =============the event handling zone============= */
+
+    this.players.forEach(player => {
+      this.unsubscribePlayerCollide = this.matterCollision.addOnCollideStart({
+        objectA: player.sprite,
+        callback: this.onPlayerCollide,
+        context: this
+      });
+    });
 
     // wen the player finishes
     this.players.forEach(player => {
@@ -129,10 +139,11 @@ export default class MainScene extends Phaser.Scene {
         // Unsubscribe from collision events so that this logic is run only once
         this.unsubscribePlayerCollide();
 
-        player.freeze();
-        const cam = this.cameras.main;
-        cam.fade(250, 0, 0, 0);
-        cam.once("camerafadeoutcomplete", () => this.scene.restart());
+        this.scene.restart()
+        // player.freeze();
+        // const cam = this.cameras.main;
+        // cam.fade(250, 0, 0, 0);
+        // cam.once("camerafadeoutcomplete", () => this.scene.restart());
       }
     });
   }
