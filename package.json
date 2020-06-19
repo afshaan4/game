@@ -9,8 +9,9 @@
   "author": "cautiouspotato, skittlemittle",
   "license": "MIT",
   "dependencies": {
-    "phaser": "^3.22.0",
-    "webpack": "^4.42.1",
+    "phaser": "^3.23.0",
+    "phaser-matter-collision-plugin": "^0.10.2",
+    "webpack": "^4.43.0",
     "webpack-cli": "^3.3.11"
   }
 }

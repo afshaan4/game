@@ -1,21 +1,23 @@
-// entry point
 import * as Phaser from "phaser";
-import TestScene from "./scene.js";
+import PhaserMatterCollisionPlugin from "phaser-matter-collision-plugin/src";
+import MainScene from "./scene.js";
 
 const config = {
-    type: Phaser.AUTO,
-    width: 800,
-    height: 600,
-    scene: TestScene,
-    physics: {
-        default: 'arcade',
-        arcade: {
-            gravity: {
-                y: 1000
-            }
-        }
-    }
+  type: Phaser.AUTO,
+  width: window.innerWidth,
+  height: window.innerHeight,
+  scene: MainScene,
+  pixelArt: true,
+  physics: { default: "matter" },
+  plugins: {
+    scene: [
+      {
+        plugin: PhaserMatterCollisionPlugin,
+        key: "matterCollision",
+        mapping: "matterCollision" 
+      }
+    ]
+  }
 };
 
-// fatt oof
 const game = new Phaser.Game(config);

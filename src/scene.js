@@ -1,72 +1,146 @@
-//  the funny has arrived
+// original author: https://github.com/mikewesthad/phaser-3-tilemap-blog-posts
+
 import * as Phaser from "phaser";
-import Slime from "./slime.js"
+import Char from "./char.js";
+import createRotatingPlatform from "./create-rotating-platform.js";
 
-export default class TestScene extends Phaser.Scene {
-    preload() {
-        // lol sprite
-        this.load.spritesheet(
-            'player',
-            'assets/G.png', {
-                frameWidth: 20,
-                frameHeight: 20,
-                margin: 0,
-                spacing: 0
-            }
-        );
+export default class MainScene extends Phaser.Scene {
+  preload() {
+    this.load.tilemapTiledJSON("map", "../assets/tilemaps/level.json");
+    this.load.image(
+      "kenney-tileset-64px-extruded",
+      "../assets/tilesets/kenney-tileset-64px-extruded.png"
+    );
 
-        this.load.image('fin_line', 'assets/finish_line.png');
-        this.load.image('tiles', 'assets/tilesets/default.png');
-        this.load.tilemapTiledJSON('map', 'assets/maps/platformer-simple.json');
+    this.load.image("wooden-plank", "../assets/images/wooden-plank.png");
+    this.load.image("block", "../assets/images/block.png");
+
+    this.load.spritesheet(
+      "player",
+      "../assets/spritesheets/0x72-industrial-player-32px-extruded.png",
+      {
+        frameWidth: 32,
+        frameHeight: 32,
+        margin: 1,
+        spacing: 2
+      }
+    );
+  }
+
+  create() {
+    this.leaderBoard = [];
+    const map = this.make.tilemap({ key: "map" });
+    const tileset = map.addTilesetImage("kenney-tileset-64px-extruded");
+    const groundLayer = map.createDynamicLayer("Ground", tileset, 0, 0);
+    const lavaLayer = map.createDynamicLayer("Lava", tileset, 0, 0);
+    map.createDynamicLayer("Background", tileset, 0, 0);
+    map.createDynamicLayer("Foreground", tileset, 0, 0).setDepth(10);
+
+    // Set colliding tiles before converting the layer to Matter bodies
+    groundLayer.setCollisionByProperty({ collides: true });
+    lavaLayer.setCollisionByProperty({ collides: true });
+
+    // Get the layers registered with Matter. Any colliding tiles will be given a Matter body. We
+    // haven't mapped our collision shapes in Tiled so each colliding tile will get a default
+    // rectangle body (similar to AP).
+    this.matter.world.convertTilemapLayer(groundLayer);
+    this.matter.world.convertTilemapLayer(lavaLayer);
+
+    // The spawn point is set using a point object inside of Tiled (within the "Spawn" object layer)
+    this.players = [];
+    const { x, y } = map.findObject("Spawn", obj => obj.name === "Spawn Point");
+    this.players.push(new Char(this, x, y, 1));
+    this.players.push(new Char(this, x, y, 0));
+
+    /* make a camera for each player */
+    const cam1 = this.cameras.add(0, window.innerHeight, window.innerWidth / 2, window.innerHeight, name = "1");
+    const cam2 = this.cameras.add(window.innerWidth / 2, window.innerHeight, window.innerWidth / 2, window.innerHeight, name = "2");
+    this.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
+    this.matter.world.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
+
+    // Smoothly follow the player
+    this.cameras.main.startFollow(this.players[1].sprite, false, 0.5, 0.5);
+
+    this.players.forEach(player => {
+      this.unsubscribePlayerCollide = this.matterCollision.addOnCollideStart({
+        objectA: player.sprite,
+        callback: this.onPlayerCollide,
+        context: this
+      });
+    });
+
+    // Load up some crates from the "Crates" object layer created in Tiled
+    // wholesome 100 keanu chungus everyone liked that thank you for the gold kind stranger reddit moment REDDIT MOMENT AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+    map.getObjectLayer("Crates").objects.forEach(crateObject => {
+      const { x, y, width, height } = crateObject;
+
+      // Tiled origin for coordinate system is (0, 1), but we want (0.5, 0.5)
+      this.matter.add
+        .image(x + width / 2, y - height / 2, "block")
+        .setBody({ shape: "rectangle", density: 0.001 });
+    });
+
+    // Create platforms at the point locations in the "Platform Locations" layer created in Tiled
+    map.getObjectLayer("Platform Locations").objects.forEach(point => {
+      createRotatingPlatform(this, point.x, point.y);
+    });
+
+    // Create a sensor at rectangle object created in Tiled (under the "Sensors" layer)
+    const rect = map.findObject("Sensors", obj => obj.name === "Celebration");
+    const finishLine = this.matter.add.rectangle(
+      rect.x + rect.width / 2,
+      rect.y + rect.height / 2,
+      rect.width,
+      rect.height,
+      {
+        isSensor: true, // It shouldn't physically interact with other bodies
+        isStatic: true // It shouldn't move
+      }
+    );
+
+    // wen the player finishes
+    this.players.forEach(player => {
+      this.matterCollision.addOnCollideStart({
+        objectA: player.sprite,
+        objectB: finishLine,
+        callback: () => { this.onPlayerWin(player) },
+        context: this
+      });
+    });
+
+    // has to be a declaration coz i want it in here
+    this.unsubscribeFinishLine = (player) => {
+      this.matterCollision.removeOnCollideStart({
+        objectA: player.sprite,
+        objectB: finishLine
+      });
     }
+  }
 
-    create() {
-        this.level_finished = false;
+  onPlayerCollide({ gameObjectB }) {
+    if (!gameObjectB || !(gameObjectB instanceof Phaser.Tilemaps.Tile)) return;
 
-        const map = this.make.tilemap({
-            key: 'map'
-        });
-        // tilesetname(name of tileset set by map maker), key
-        const tiles = map.addTilesetImage('0x72-industrial-tileset-32px-extruded', 'tiles');
+    const tile = gameObjectB;
 
-        // make the layers
-        map.createStaticLayer('Background', tiles);
-        this.groundLayer = map.createStaticLayer('Ground', tiles);
-        map.createStaticLayer('Foreground', tiles);
+    // Check the tile property set in Tiled (you could also just check the index if you aren't using
+    // Tiled in your game)
+    this.players.forEach(player => {
+      if (tile.properties.isLethal) {
+        // Unsubscribe from collision events so that this logic is run only once
+        this.unsubscribePlayerCollide();
 
-        // spawn in player
-        const spawn = map.findObject('Objects', obj => obj.name === 'Spawn Point');
-        this.player = new Slime(this, spawn.x, spawn.y); // OOOF
+        player.freeze();
+        const cam = this.cameras.main;
+        cam.fade(250, 0, 0, 0);
+        cam.once("camerafadeoutcomplete", () => this.scene.restart());
+      }
+    });
+  }
 
-        // physics
-        this.groundLayer.setCollisionByProperty({
-            collides: true
-        });
-        this.physics.world.addCollider(this.player.sprite, this.groundLayer);
-
-        // le finish flag
-        this.fin_line = this.physics.add.staticGroup();
-        this.fin_line.create(map.widthInPixels - 100, 200, 'fin_line');
-
-        // cam
-        this.cameras.main.startFollow(this.player.sprite);
-        this.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
-    }
-
-    update(time, delta) {
-        if (this.level_finished) return; // TODO: make it call the next level
-        // player handles its own movements
-        this.player.update(delta);
-
-        // tfw the player finishes a level
-        if (this.physics.world.overlap(this.player.sprite, this.fin_line)) {
-            this.level_finished = true;
-            this.player.destroy();
-            this.scene.restart();
-        } else if (this.player.sprite.y > this.groundLayer.height) {
-            // you fell off, get ded
-            this.player.destroy();
-            this.scene.restart();
-        }
-    }
+  onPlayerWin(player) {
+    this.leaderBoard.push(player.id);
+    player.hasFinished = true;
+    console.log(this.leaderBoard);
+    this.unsubscribeFinishLine(player);
+  }
 }

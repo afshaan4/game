@@ -2,3 +2,5 @@ node_modules
 
 dist/bundle.js
 .vscode/launch.json
+dist/assets/*
+
