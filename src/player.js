@@ -1,14 +1,15 @@
-// base player funtionality: run, jump, slide?
+// generic player functionality
 // original author: https://github.com/mikewesthad/phaser-3-tilemap-blog-posts
+// modified by: skittlemittle
 
 import * as Phaser from "phaser";
 
 export default class Player {
-  constructor(scene, x, y, id) {
+  constructor(scene, x, y, id, spritesheet) {
     this.scene = scene;
     this.id = id;
     this.hasFinished;
-    this.sprite = this.createPlayerCharachter(x, y);
+    this.sprite = this.createPlayerCharachter(x, y, spritesheet); // sprite;
 
     // Track which sensors are touching something
     this.isTouching = {
@@ -64,36 +65,15 @@ export default class Player {
       });
 
     this.destroyed = false;
-    this.scene.events.on("update", this.update, this);
+    // this.scene.events.on("update", this.update, this);
     this.scene.events.once("shutdown", this.destroy, this);
     this.scene.events.once("destroy", this.destroy, this);
   }
 
-  // generate charachter from a spritesheet
-  createPlayerCharachter(x, y, spritesheet = "player") {
-    // anim
-    const anims = this.scene.anims;
-    anims.create({
-      key: "player-idle",
-      frames: anims.generateFrameNumbers(spritesheet, {
-        start: 0,
-        end: 3
-      }),
-      frameRate: 3,
-      repeat: -1
-    });
-    anims.create({
-      key: "player-run",
-      frames: anims.generateFrameNumbers(spritesheet, {
-        start: 8,
-        end: 15
-      }),
-      frameRate: 12,
-      repeat: -1
-    });
-
-    // add collision sensors and make the final body
-    let sprite = this.scene.matter.add.sprite(0, 0, "player", 0);
+  // generate characters physics body from a spritesheet,
+  // animations are handled by the characters class
+  createPlayerCharachter(x, y, spritesheet) {
+    let sprite = this.scene.matter.add.sprite(0, 0, spritesheet, 0);
 
     const {
       Body,
@@ -144,13 +124,15 @@ export default class Player {
     bodyB,
     pair
   }) {
-    // Watch for the player colliding with walls/objects on either side and the ground below, so
-    // that we can use that logic inside of update to move the player.
-    // Note: we are using the "pair.separation" here. That number tells us how much bodyA and bodyB
-    // overlap. We want to teleport the sprite away from walls just enough so that the player won't
-    // be able to press up against the wall and use friction to hang in midair. This formula leaves
-    // 0.5px of overlap with the sensor so that the sensor will stay colliding on the next tick if
-    // the player doesn't move.
+    /*
+      Watch for the player colliding with walls/objects on either side and the ground below, so
+      that we can use that logic inside of update to move the player.
+      Note: we are using the "pair.separation" here. That number tells us how much bodyA and bodyB
+      overlap. We want to teleport the sprite away from walls just enough so that the player won't
+      be able to press up against the wall and use friction to hang in midair. This formula leaves
+      0.5px of overlap with the sensor so that the sensor will stay colliding on the next tick if
+      the player doesn't move.
+    */
     if (bodyB.isSensor) return; // We only care about collisions with physical objects
     if (bodyA === this.sensors.left) {
       this.isTouching.left = true;
@@ -230,20 +212,11 @@ export default class Player {
         callback: () => (this.canJump = true)
       });
     }
-
-    // Update the animation/texture based on the state of the player's state
-    if (isOnGround) {
-      if (sprite.body.force.x !== 0) sprite.anims.play("player-run", true);
-      else sprite.anims.play("player-idle", true);
-    } else {
-      sprite.anims.stop();
-      sprite.setTexture("player", 10);
-    }
   }
 
   destroy() {
     // Clean up any listeners that might trigger events after the player is officially destroyed
-    this.scene.events.off("update", this.update, this);
+    // this.scene.events.off("update", this.update, this);
     this.scene.events.off("shutdown", this.destroy, this);
     this.scene.events.off("destroy", this.destroy, this);
     if (this.scene.matter.world) {

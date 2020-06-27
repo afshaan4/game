@@ -4,8 +4,8 @@ import MainScene from "./scene.js";
 
 const config = {
   type: Phaser.AUTO,
-  width: window.innerWidth,
-  height: window.innerHeight,
+  width: 800,
+  height: 600,
   scene: MainScene,
   pixelArt: true,
   physics: { default: "matter" },
