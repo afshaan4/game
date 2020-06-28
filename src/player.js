@@ -8,8 +8,13 @@ export default class Player {
   constructor(scene, x, y, id, spritesheet) {
     this.scene = scene;
     this.id = id;
-    this.hasFinished;
-    this.sprite = this.createPlayerCharachter(x, y, spritesheet); // sprite;
+    this.sprite = this.createPlayerCharachter(x, y, spritesheet);
+
+    // player state
+    this.state = {
+      destroyed: false,
+      facing: 'R',
+    }
 
     // Track which sensors are touching something
     this.isTouching = {
@@ -55,26 +60,25 @@ export default class Player {
         up: UP,
         z: Z,
         x: X
-      } :
-      {
+      } : {
         left: A,
         right: D,
         up: W,
         z: Z,
         x: X
-      });
+      }
+    );
 
-    this.destroyed = false;
     // this.scene.events.on("update", this.update, this);
     this.scene.events.once("shutdown", this.destroy, this);
-    this.scene.events.once("destroy", this.destroy, this);
+    // this.scene.events.once("destroy", this.destroy, this);
   }
 
-  // generate characters physics body from a spritesheet,
-  // animations are handled by the characters class
+  // generate characters physics body from a spritesheet
   createPlayerCharachter(x, y, spritesheet) {
     let sprite = this.scene.matter.add.sprite(0, 0, spritesheet, 0);
 
+    // add collision sensors to the sprite
     const {
       Body,
       Bodies
@@ -156,7 +160,7 @@ export default class Player {
   }
 
   update() {
-    if (this.destroyed) return;
+    if (this.state.destroyed) return;
 
     const sprite = this.sprite;
     const velocity = sprite.body.velocity;
@@ -173,6 +177,7 @@ export default class Player {
 
     if (isLeftKeyDown) {
       sprite.setFlipX(true);
+      this.state.facing = 'L';
 
       // Don't let the player push things left if they in the air
       if (!(isInAir && this.isTouching.left)) {
@@ -183,6 +188,7 @@ export default class Player {
       }
     } else if (isRightKeyDown) {
       sprite.setFlipX(false);
+      this.state.facing = 'R';
 
       // Don't let the player push things right if they in the air
       if (!(isInAir && this.isTouching.right)) {
@@ -217,8 +223,8 @@ export default class Player {
   destroy() {
     // Clean up any listeners that might trigger events after the player is officially destroyed
     // this.scene.events.off("update", this.update, this);
-    this.scene.events.off("shutdown", this.destroy, this);
-    this.scene.events.off("destroy", this.destroy, this);
+    // this.scene.events.off("shutdown", this.destroy, this);
+    // this.scene.events.off("destroy", this.destroy, this);
     if (this.scene.matter.world) {
       this.scene.matter.world.off("beforeupdate", this.resetTouching, this);
     }
@@ -231,7 +237,7 @@ export default class Player {
     });
     if (this.jumpCooldownTimer) this.jumpCooldownTimer.destroy();
 
-    this.destroyed = true;
+    this.state.destroyed = true;
     this.sprite.destroy();
   }
 }
