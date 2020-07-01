@@ -61,7 +61,9 @@ export default class Char extends Player {
   destroy() {
     super.destroy();
     this.scene.events.off("update", this.update, this);
+    this.scene.events.off("destroy", this.destroy, this);
     this.scene.events.off("shutdown", this.destroy, this);
-    this.destroyed = true; // this is the shared this.destroyed, so buckle up
+    this.sprite.destroy();
+    // this.destroyed = true; // this is the shared this.destroyed, so buckle up
   }
 }

@@ -238,6 +238,6 @@ export default class Player {
     if (this.jumpCooldownTimer) this.jumpCooldownTimer.destroy();
 
     this.state.destroyed = true;
-    this.sprite.destroy();
+    // this.sprite.destroy();
   }
 }

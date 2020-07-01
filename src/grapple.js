@@ -8,6 +8,8 @@ export default class Grapple extends Player {
     this.scene = scene;
     this.id = id;
     this.spritesheet = spritesheet; //maybe remove
+    this.anchor = -1;
+    this.grappleLine;
 
     // animations hahahahjasfnkacoaeifcsnkfhlaichlfh
     this.scene.anims.create({
@@ -34,7 +36,6 @@ export default class Grapple extends Player {
     // --- grappling hook controls ---
     this.keys.z.on('down', () => {
       // launch grapple (start grapple acceleration)
-      console.log(this.state.facing);
       this.launchGrapple();
     });
     this.keys.z.on('up', () => {
@@ -58,7 +59,7 @@ export default class Grapple extends Player {
       x,
       y
     } = this.sprite.body.position; // null after player dies, fix
-
+    
     // create anchor body, maybe just hav this move the anchor so we have only
     // one anchor
     if (this.state.facing === 'L') {
@@ -72,15 +73,15 @@ export default class Grapple extends Player {
     }
 
     // create constraint
-    this.scene.matter.add.constraint(this.sprite, this.anchor, 10, 0.1, {
-      label: "grappleLine"
-    });
+    this.grappleLine = this.scene.matter.add.constraint(this.sprite, this.anchor, 10, 0.1);
   }
 
   /* destroys the constraint and anchor made my launchGrapple() */
   releaseGrapple() {
-    // E
-    this.anchor.destroy();
+    if (this.anchor !== -1) { 
+      this.scene.matter.world.remove(this.anchor);
+      this.scene.matter.world.removeConstraint(this.grappleLine);
+    }
   }
 
   /* ------ Public methods ------ */

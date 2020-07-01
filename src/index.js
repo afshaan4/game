@@ -8,16 +8,18 @@ const config = {
   height: 600,
   scene: MainScene,
   pixelArt: true,
-  physics: { default: "matter" },
+  physics: {
+    default: "matter"
+  },
   plugins: {
-    scene: [
-      {
-        plugin: PhaserMatterCollisionPlugin,
-        key: "matterCollision",
-        mapping: "matterCollision" 
-      }
-    ]
+    scene: [{
+      plugin: PhaserMatterCollisionPlugin,
+      key: "matterCollision",
+      mapping: "matterCollision"
+    }]
   }
 };
 
-const game = new Phaser.Game(config);
+window.onload = () => {
+  const game = new Phaser.Game(config)
+};
