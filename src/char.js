@@ -1,5 +1,4 @@
 // handles the animations and "abilities" of <charactername>
-import * as Phaser from "phaser";
 import Player from "./player.js"
 
 export default class Char extends Player {

@@ -231,7 +231,6 @@ export default class Player {
     if (this.jumpCooldownTimer) this.jumpCooldownTimer.destroy();
 
     this.state.destroyed = true;
-    this.sprite.destroy();
   }
 
   shutdown() {
@@ -239,6 +238,6 @@ export default class Player {
     // event handler, on the understanding that the Scene may, at any time,
     // become active again. A shutdown Scene is not 'destroyed', it's simply not
     // currently active.
-    this.state.destroyed = true; //rename? 
+    this.state.destroyed = true; // rename var?
   }
 }

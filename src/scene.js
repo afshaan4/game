@@ -1,4 +1,5 @@
 // original author: https://github.com/mikewesthad/phaser-3-tilemap-blog-posts
+// modified by: skittlemittle
 
 import * as Phaser from "phaser";
 import Char from "./char.js";

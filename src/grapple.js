@@ -1,5 +1,6 @@
 // handles the animations and "abilities" of g.r.a.p.p.l.e
-import * as Phaser from "phaser";
+
+// import * as Phaser from "phaser";
 import Player from "./player.js"
 
 export default class Grapple extends Player {
@@ -10,7 +11,7 @@ export default class Grapple extends Player {
     this.spritesheet = spritesheet; //maybe remove
     this.anchor = -1;
     this.grappleLine;
-    this.noChloop = false;
+    this.noChLoop = false;
 
     // animations hahahahjasfnkacoaeifcsnkfhlaichlfh
     this.scene.anims.create({
@@ -62,17 +63,17 @@ export default class Grapple extends Player {
     // create anchor body, maybe just hav this move the anchor so we have only
     // one anchor
     if (this.state.facing === 'L') {
-      this.anchor = this.scene.matter.add.rectangle(x - 300, y, 10, 10, {
+      this.anchor = this.scene.matter.add.rectangle(x - 350, y, 10, 10, {
         isStatic: true
       });
     } else {
-      this.anchor = this.scene.matter.add.rectangle(x + 300, y, 10, 10, {
+      this.anchor = this.scene.matter.add.rectangle(x + 350, y, 10, 10, {
         isStatic: true
       });
     }
     // create constraint
     // TODO: tweak spring strength
-    this.grappleLine = this.scene.matter.add.constraint(this.sprite, this.anchor, 10, 0.01);
+    this.grappleLine = this.scene.matter.add.constraint(this.sprite, this.anchor, 10, 0.007);
   }
 
   /* destroys the constraint and anchor made my launchGrapple() */
@@ -85,7 +86,7 @@ export default class Grapple extends Player {
 
   /* ------ Public methods ------ */
   chUpdate() {
-    if (this.noChloop) return;
+    if (this.noChLoop) return;
     super.update();
 
     const isOnGround = this.isTouching.ground;
@@ -102,14 +103,15 @@ export default class Grapple extends Player {
 
   chDestroy() {
     super.destroy();
-    this.noChloop = true;
+    this.noChLoop = true;
     this.scene.events.off("update", this.chUpdate, this);
     this.scene.events.off("destroy", this.chDestroy, this);
+    this.sprite.destroy();
   }
 
   chShutdown() {
     super.shutdown();
-    this.noChloop = true;
+    this.noChLoop = true;
     this.scene.events.off("shutdown", this.chDestroy, this);
   }
 }

@@ -21,5 +21,5 @@ const config = {
 };
 
 window.onload = () => {
-  const game = new Phaser.Game(config)
+  new Phaser.Game(config);
 };
