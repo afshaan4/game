@@ -162,9 +162,8 @@ export default class MainScene extends Phaser.Scene {
         // Unsubscribe from collision events so that this logic is run only once
         this.unsubscribePlayerCollide();
 
+        player.freeze();
         this.scene.restart()
-        // TODO: destroy charachters
-        // player.freeze();
         // const cam = this.cameras.main;
         // cam.fade(250, 0, 0, 0);
         // cam.once("camerafadeoutcomplete", () => this.scene.restart());

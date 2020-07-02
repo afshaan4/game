@@ -68,10 +68,6 @@ export default class Player {
         x: X
       }
     );
-
-    // this.scene.events.on("update", this.update, this);
-    this.scene.events.once("shutdown", this.destroy, this);
-    // this.scene.events.once("destroy", this.destroy, this);
   }
 
   // generate characters physics body from a spritesheet
@@ -222,9 +218,6 @@ export default class Player {
 
   destroy() {
     // Clean up any listeners that might trigger events after the player is officially destroyed
-    // this.scene.events.off("update", this.update, this);
-    // this.scene.events.off("shutdown", this.destroy, this);
-    // this.scene.events.off("destroy", this.destroy, this);
     if (this.scene.matter.world) {
       this.scene.matter.world.off("beforeupdate", this.resetTouching, this);
     }
@@ -238,6 +231,14 @@ export default class Player {
     if (this.jumpCooldownTimer) this.jumpCooldownTimer.destroy();
 
     this.state.destroyed = true;
-    // this.sprite.destroy();
+    this.sprite.destroy();
+  }
+
+  shutdown() {
+    // You should free-up any resources that may be in use by your Scene in this
+    // event handler, on the understanding that the Scene may, at any time,
+    // become active again. A shutdown Scene is not 'destroyed', it's simply not
+    // currently active.
+    this.state.destroyed = true; //rename? 
   }
 }

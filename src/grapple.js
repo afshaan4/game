@@ -10,6 +10,7 @@ export default class Grapple extends Player {
     this.spritesheet = spritesheet; //maybe remove
     this.anchor = -1;
     this.grappleLine;
+    this.noChloop = false;
 
     // animations hahahahjasfnkacoaeifcsnkfhlaichlfh
     this.scene.anims.create({
@@ -35,17 +36,15 @@ export default class Grapple extends Player {
 
     // --- grappling hook controls ---
     this.keys.z.on('down', () => {
-      // launch grapple (start grapple acceleration)
       this.launchGrapple();
     });
     this.keys.z.on('up', () => {
-      // release grapple (remove constraint)
       this.releaseGrapple();
     });
 
-    this.scene.events.on("update", this.update, this);
-    this.scene.events.once("shutdown", this.destroy, this);
-    this.scene.events.once("destroy", this.destroy, this);
+    this.scene.events.on("update", this.chUpdate, this);
+    this.scene.events.once("destroy", this.chDestroy, this);
+    this.scene.events.once("shutdown", this.chShutdown, this);
   }
 
   /* ------ Private methods ------ */
@@ -59,7 +58,7 @@ export default class Grapple extends Player {
       x,
       y
     } = this.sprite.body.position; // null after player dies, fix
-    
+
     // create anchor body, maybe just hav this move the anchor so we have only
     // one anchor
     if (this.state.facing === 'L') {
@@ -71,23 +70,23 @@ export default class Grapple extends Player {
         isStatic: true
       });
     }
-
     // create constraint
-    this.grappleLine = this.scene.matter.add.constraint(this.sprite, this.anchor, 10, 0.1);
+    // TODO: tweak spring strength
+    this.grappleLine = this.scene.matter.add.constraint(this.sprite, this.anchor, 10, 0.01);
   }
 
   /* destroys the constraint and anchor made my launchGrapple() */
   releaseGrapple() {
-    if (this.anchor !== -1) { 
+    if (this.anchor !== -1) {
       this.scene.matter.world.remove(this.anchor);
       this.scene.matter.world.removeConstraint(this.grappleLine);
     }
   }
 
   /* ------ Public methods ------ */
-  update() {
+  chUpdate() {
+    if (this.noChloop) return;
     super.update();
-    if (this.state.destroyed) return;
 
     const isOnGround = this.isTouching.ground;
 
@@ -101,12 +100,16 @@ export default class Grapple extends Player {
     }
   }
 
-  destroy() {
+  chDestroy() {
     super.destroy();
-    this.scene.events.off("update", this.update, this);
-    this.scene.events.off("destroy", this.destroy, this);
-    this.scene.events.off("shutdown", this.destroy, this);
-    this.sprite.destroy();
-    // this.destroyed = true; // this is the shared this.destroyed, so buckle up
+    this.noChloop = true;
+    this.scene.events.off("update", this.chUpdate, this);
+    this.scene.events.off("destroy", this.chDestroy, this);
+  }
+
+  chShutdown() {
+    super.shutdown();
+    this.noChloop = true;
+    this.scene.events.off("shutdown", this.chDestroy, this);
   }
 }
