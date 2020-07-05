@@ -7,6 +7,7 @@ export default class Char extends Player {
     this.scene = scene;
     this.id = id;
     this.spritesheet = spritesheet; //maybe remove
+    this.noChLoop = false;
 
     // animations hahahahjasfnkacoaeifcsnkfhlaichlfh
     this.scene.anims.create({
@@ -37,13 +38,15 @@ export default class Char extends Player {
       //
     });
 
-    this.scene.events.on("update", this.update, this);
-    this.scene.events.once("shutdown", this.destroy, this);
+    this.scene.events.on("update", this.chUpdate, this);
+    this.scene.events.once("destroy", this.chDestroy, this);
+    this.scene.events.once("shutdown", this.chShutdown, this);
   }
 
-  update() {
+  /* ------ Public methods ------ */
+  chUpdate() {
+    if (this.noChLoop) return;
     super.update();
-    if (this.destroyed) return;
 
     const isOnGround = this.isTouching.ground;
 
@@ -57,12 +60,17 @@ export default class Char extends Player {
     }
   }
 
-  destroy() {
+  chDestroy() {
     super.destroy();
-    this.scene.events.off("update", this.update, this);
-    this.scene.events.off("destroy", this.destroy, this);
-    this.scene.events.off("shutdown", this.destroy, this);
+    this.noChLoop = true;
     this.sprite.destroy();
-    // this.destroyed = true; // this is the shared this.destroyed, so buckle up
+    this.scene.events.off("update", this.chUpdate, this);
+    this.scene.events.off("destroy", this.chDestroy, this);
+  }
+
+  chShutdown() {
+    super.shutdown();
+    this.noChLoop = true;
+    this.scene.events.off("shutdown", this.chShutdown, this);
   }
 }

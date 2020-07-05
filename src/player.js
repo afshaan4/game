@@ -151,6 +151,7 @@ export default class Player {
     this.isTouching.ground = false;
   }
 
+  /* ------ Public methods ------ */
   freeze() {
     this.sprite.setStatic(true);
   }

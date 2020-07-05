@@ -9,6 +9,7 @@ export default class Grapple extends Player {
     this.scene = scene;
     this.id = id;
     this.spritesheet = spritesheet; //maybe remove
+
     this.anchor = -1;
     this.grappleLine;
     this.noChLoop = false;
@@ -60,20 +61,17 @@ export default class Grapple extends Player {
       y
     } = this.sprite.body.position; // null after player dies, fix
 
-    // create anchor body, maybe just hav this move the anchor so we have only
-    // one anchor
     if (this.state.facing === 'L') {
-      this.anchor = this.scene.matter.add.rectangle(x - 350, y, 10, 10, {
+      this.anchor = this.scene.matter.add.rectangle(x - 350, y - 75, 1, 1, {
         isStatic: true
       });
     } else {
-      this.anchor = this.scene.matter.add.rectangle(x + 350, y, 10, 10, {
+      this.anchor = this.scene.matter.add.rectangle(x + 350, y - 75, 1, 1, {
         isStatic: true
       });
     }
-    // create constraint
     // TODO: tweak spring strength
-    this.grappleLine = this.scene.matter.add.constraint(this.sprite, this.anchor, 10, 0.007);
+    this.grappleLine = this.scene.matter.add.constraint(this.sprite, this.anchor, 0, 0.007);
   }
 
   /* destroys the constraint and anchor made my launchGrapple() */
@@ -101,17 +99,19 @@ export default class Grapple extends Player {
     }
   }
 
+  // doesnt get called on scene restart
   chDestroy() {
     super.destroy();
     this.noChLoop = true;
+    this.sprite.destroy();
     this.scene.events.off("update", this.chUpdate, this);
     this.scene.events.off("destroy", this.chDestroy, this);
-    this.sprite.destroy();
   }
 
+  // this is being called twice(once per char), fix
   chShutdown() {
     super.shutdown();
     this.noChLoop = true;
-    this.scene.events.off("shutdown", this.chDestroy, this);
+    this.scene.events.off("shutdown", this.chShutdown, this);
   }
 }

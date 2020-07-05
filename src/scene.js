@@ -156,25 +156,20 @@ export default class MainScene extends Phaser.Scene {
 
     const tile = gameObjectB;
 
-    // Check the tile property set in Tiled (you could also just check the index if you aren't using
-    // Tiled in your game)
+    // Check the tile property set in Tiled (you could also just check the 
+    // index if you aren't using Tiled in your game)
     this.players.forEach(player => {
       if (tile.properties.isLethal) {
         // Unsubscribe from collision events so that this logic is run only once
         this.unsubscribePlayerCollide();
-
-        player.freeze();
-        this.scene.restart()
-        // const cam = this.cameras.main;
-        // cam.fade(250, 0, 0, 0);
-        // cam.once("camerafadeoutcomplete", () => this.scene.restart());
+        // player.freeze();
+        // this.scene.restart(); // TODO: gets called twice
       }
     });
   }
 
   onPlayerWin(player) {
     this.leaderBoard.push(player.id);
-    player.hasFinished = true;
     console.log(this.leaderBoard);
     this.unsubscribeFinishLine(player);
   }
