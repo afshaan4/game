@@ -9,10 +9,12 @@ export default class Grapple extends Player {
     this.scene = scene;
     this.id = id;
     this.spritesheet = spritesheet; //maybe remove
-
     this.anchor = -1;
     this.grappleLine;
     this.noChLoop = false;
+    // grapple cooldown
+    this.canGrapple = true;
+    this.grappleCooldownTimer = null;
 
     // animations hahahahjasfnkacoaeifcsnkfhlaichlfh
     this.scene.anims.create({
@@ -36,7 +38,6 @@ export default class Grapple extends Player {
 
     /* ability key event handlers */
 
-    // --- grappling hook controls ---
     this.keys.z.on('down', () => {
       this.launchGrapple();
     });
@@ -56,27 +57,62 @@ export default class Grapple extends Player {
    thin air 
   */
   launchGrapple() {
-    const {
-      x,
-      y
-    } = this.sprite.body.position; // null after player dies, fix
+    if (this.canGrapple) {
+      const {
+        x,
+        y
+      } = this.sprite.body.position; // null after player dies, fix
 
-    if (this.state.facing === 'L') {
-      this.anchor = this.scene.matter.add.rectangle(x - 350, y - 75, 1, 1, {
-        isStatic: true
+      if (this.state.facing === 'L') {
+        this.anchor = this.scene.matter.add.rectangle(x - 350, y - 75, 1, 1, {
+          isStatic: true,
+          isSensor: true
+        });
+      } else {
+        this.anchor = this.scene.matter.add.rectangle(x + 350, y - 75, 1, 1, {
+          isStatic: true,
+          isSensor: true
+        });
+      }
+      // TODO: tweak spring strength
+      this.grappleLine = this.scene.matter.add.constraint(this.sprite, this.anchor, 0, 0.007);
+
+      // grapple cooldown
+      this.canGrapple = false;
+      this.grappleCooldownTimer = this.scene.time.addEvent({
+        delay: 4000, // TODO: tweak
+        callback: () => (this.canGrapple = true)
       });
-    } else {
-      this.anchor = this.scene.matter.add.rectangle(x + 350, y - 75, 1, 1, {
-        isStatic: true
+
+      /*
+      if the grappling hook hooks onto a map block (walls, roof) then
+      the player stays attached to it till the ability key is 
+      released: spoderman, but if it hooks onto thin air then the 
+      anchor point is destoryed upon contacting the player, so they
+      keep on flying smoothly. 
+      */
+      this.scene.matterCollision.addOnCollideStart({
+        objectA: this.anchor,
+        callback: () => (console.log("wall")),
+        context: this
+      });
+      this.scene.matterCollision.addOnCollideEnd({
+        objectA: this.anchor,
+        callback: () => (console.log("not wall")),
+        context: this
       });
     }
-    // TODO: tweak spring strength
-    this.grappleLine = this.scene.matter.add.constraint(this.sprite, this.anchor, 0, 0.007);
   }
 
   /* destroys the constraint and anchor made my launchGrapple() */
   releaseGrapple() {
     if (this.anchor !== -1) {
+      this.scene.matterCollision.removeOnCollideStart({
+        objectA: this.anchor
+      });
+      this.scene.matterCollision.removeOnCollideEnd({
+        objectA: this.anchor
+      });
       this.scene.matter.world.remove(this.anchor);
       this.scene.matter.world.removeConstraint(this.grappleLine);
     }
@@ -103,7 +139,6 @@ export default class Grapple extends Player {
   chDestroy() {
     super.destroy();
     this.noChLoop = true;
-    this.sprite.destroy();
     this.scene.events.off("update", this.chUpdate, this);
     this.scene.events.off("destroy", this.chDestroy, this);
   }
@@ -112,6 +147,7 @@ export default class Grapple extends Player {
   chShutdown() {
     super.shutdown();
     this.noChLoop = true;
+    if (this.grappleCooldownTimer) this.grappleCooldownTimer.destroy();
     this.scene.events.off("shutdown", this.chShutdown, this);
   }
 }
