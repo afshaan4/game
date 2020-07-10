@@ -158,14 +158,11 @@ export default class MainScene extends Phaser.Scene {
 
     // Check the tile property set in Tiled (you could also just check the 
     // index if you aren't using Tiled in your game)
-    this.players.forEach(player => {
-      if (tile.properties.isLethal) {
-        // Unsubscribe from collision events so that this logic is run only once
-        this.unsubscribePlayerCollide();
-        // player.freeze();
-        // this.scene.restart(); // TODO: gets called twice
-      }
-    });
+    if (tile.properties.isLethal) {
+      // Unsubscribe from collision events so that this logic is run only once
+      // this.unsubscribePlayerCollide();
+      // this.scene.restart();
+    }
   }
 
   onPlayerWin(player) {

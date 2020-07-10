@@ -1,6 +1,6 @@
 // handles the animations and "abilities" of g.r.a.p.p.l.e
 
-// import * as Phaser from "phaser";
+import * as Phaser from "phaser";
 import Player from "./player.js"
 
 export default class Grapple extends Player {
@@ -57,48 +57,54 @@ export default class Grapple extends Player {
    thin air 
   */
   launchGrapple() {
-    if (this.canGrapple) {
-      const {
-        x,
-        y
-      } = this.sprite.body.position; // null after player dies, fix
+    if (!this.canGrapple) return;
 
-      if (this.state.facing === 'L') {
-        this.anchor = this.scene.matter.add.rectangle(x - 350, y - 75, 1, 1, {
-          isStatic: true,
-          isSensor: true
-        });
-      } else {
-        this.anchor = this.scene.matter.add.rectangle(x + 350, y - 75, 1, 1, {
-          isStatic: true,
-          isSensor: true
-        });
-      }
-      // TODO: tweak spring strength
-      this.grappleLine = this.scene.matter.add.constraint(this.sprite, this.anchor, 0, 0.007);
+    const {
+      x,
+      y
+    } = this.sprite.body.position; // undefined after scene restart, fix
+    let canHang = false; // reset each launch
 
-      // grapple cooldown
-      this.canGrapple = false;
-      this.grappleCooldownTimer = this.scene.time.addEvent({
-        delay: 4000, // TODO: tweak
-        callback: () => (this.canGrapple = true)
+    if (this.state.facing === 'L') {
+      this.anchor = this.scene.matter.add.rectangle(x - 350, y - 75, 1, 1, {
+        isStatic: true,
+        isSensor: true
       });
+    } else {
+      this.anchor = this.scene.matter.add.rectangle(x + 350, y - 75, 1, 1, {
+        isStatic: true,
+        isSensor: true
+      });
+    }
+    // TODO: tweak spring strength
+    this.grappleLine = this.scene.matter.add.constraint(this.sprite, this.anchor, 0, 0.007);
 
-      /*
-      if the grappling hook hooks onto a map block (walls, roof) then
-      the player stays attached to it till the ability key is 
-      released: spoderman, but if it hooks onto thin air then the 
-      anchor point is destoryed upon contacting the player, so they
-      keep on flying smoothly. 
-      */
+    // grapple cooldown
+    this.canGrapple = false;
+    this.grappleCooldownTimer = this.scene.time.addEvent({
+      delay: 4000, // TODO: tweak
+      callback: () => (this.canGrapple = true)
+    });
+
+    /*
+    if the grappling hook hooks onto a map block (walls, roof) then
+    the player stays attached to it till the ability key is 
+    released: spoderman, but if it hooks onto thin air then the 
+    anchor point is destoryed upon contacting the player, so they
+    keep on flying smoothly. 
+    */
+    const stickSurface = this.scene.matter.intersectBody(this.anchor);
+    stickSurface.forEach(e => {
+      if (e.gameObject instanceof Phaser.Physics.Matter.TileBody) {
+        canHang = true;
+      }
+    });
+
+    if (!canHang) {
       this.scene.matterCollision.addOnCollideStart({
         objectA: this.anchor,
-        callback: () => (console.log("wall")),
-        context: this
-      });
-      this.scene.matterCollision.addOnCollideEnd({
-        objectA: this.anchor,
-        callback: () => (console.log("not wall")),
+        objectB: this.sprite,
+        callback: this.releaseGrapple,
         context: this
       });
     }
@@ -107,12 +113,10 @@ export default class Grapple extends Player {
   /* destroys the constraint and anchor made my launchGrapple() */
   releaseGrapple() {
     if (this.anchor !== -1) {
-      this.scene.matterCollision.removeOnCollideStart({
-        objectA: this.anchor
-      });
-      this.scene.matterCollision.removeOnCollideEnd({
-        objectA: this.anchor
-      });
+      // this.scene.matterCollision.removeOnCollideStart({
+      //   objectA: this.anchor,
+      //   objectB: this.sprite
+      // });
       this.scene.matter.world.remove(this.anchor);
       this.scene.matter.world.removeConstraint(this.grappleLine);
     }
@@ -148,6 +152,8 @@ export default class Grapple extends Player {
     super.shutdown();
     this.noChLoop = true;
     if (this.grappleCooldownTimer) this.grappleCooldownTimer.destroy();
+    this.sprite.destroy();
+    this.scene.events.off("update", this.chUpdate, this);
     this.scene.events.off("shutdown", this.chShutdown, this);
   }
 }
