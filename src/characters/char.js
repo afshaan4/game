@@ -1,8 +1,10 @@
 // handles the animations and "abilities" of <charactername>
-import Player from "./player.js"
+// this is just a template really
+import Player from "../player.js";
+import * as Phaser from "phaser";
 
 export default class Char extends Player {
-  constructor(scene, x, y, id = 0, spritesheet = "player") {
+  constructor(scene, x, y, id, spritesheet = "player") {
     super(scene, x, y, id, spritesheet);
     this.scene = scene;
     this.id = id;
@@ -30,11 +32,10 @@ export default class Char extends Player {
     });
 
     /* ability key event handlers */
-    
-    this.keys.z.on('down', () => {
+    this.keys.ability_1.on('down', () => {
       // console.log("AE");
     });
-    this.keys.z.on('up', () => {
+    this.keys.ability_1.on('up', () => {
       //
     });
 
@@ -42,6 +43,8 @@ export default class Char extends Player {
     this.scene.events.once("destroy", this.chDestroy, this);
     this.scene.events.once("shutdown", this.chShutdown, this);
   }
+
+  /* ------ Private methods ------ */
 
   /* ------ Public methods ------ */
   chUpdate() {

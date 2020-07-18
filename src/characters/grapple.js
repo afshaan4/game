@@ -1,10 +1,10 @@
-// handles the animations and "abilities" of g.r.a.p.p.l.e
+// handles the animations and "abilities" of grappling hook charachter
 
 import * as Phaser from "phaser";
-import Player from "./player.js"
+import Player from "../player.js";
 
 export default class Grapple extends Player {
-  constructor(scene, x, y, id = 0, spritesheet = "player") {
+  constructor(scene, x, y, id, spritesheet = "player") {
     super(scene, x, y, id, spritesheet);
     this.scene = scene;
     this.id = id;
@@ -37,11 +37,10 @@ export default class Grapple extends Player {
     });
 
     /* ability key event handlers */
-
-    this.keys.z.on('down', () => {
+    this.keys.ability_1.on('down', () => {
       this.launchGrapple();
     });
-    this.keys.z.on('up', () => {
+    this.keys.ability_1.on('up', () => {
       this.releaseGrapple();
     });
 
@@ -76,8 +75,7 @@ export default class Grapple extends Player {
         isSensor: true
       });
     }
-    // TODO: tweak spring strength
-    this.grappleLine = this.scene.matter.add.constraint(this.sprite, this.anchor, 0, 0.007);
+    this.grappleLine = this.scene.matter.add.constraint(this.sprite,this.anchor, 0, 0.007);
 
     // grapple cooldown
     this.canGrapple = false;
@@ -87,11 +85,10 @@ export default class Grapple extends Player {
     });
 
     /*
-    if the grappling hook hooks onto a map block (walls, roof) then
-    the player stays attached to it till the ability key is 
-    released: spoderman, but if it hooks onto thin air then the 
-    anchor point is destoryed upon contacting the player, so they
-    keep on flying smoothly. 
+    if the grappling hook hooks onto a map block (walls, roof) then the player
+    stays attached to it till the ability key is released: spoderman, but if
+    it hooks onto thin air then the anchor point is destoryed upon contacting
+    the player, so they keep on flying smoothly. 
     */
     const stickSurface = this.scene.matter.intersectBody(this.anchor);
     stickSurface.forEach(e => {
@@ -108,17 +105,18 @@ export default class Grapple extends Player {
         context: this
       });
     }
+
   }
 
-  /* destroys the constraint and anchor made my launchGrapple() */
+  /* destroys the constraint and anchor made by launchGrapple() */
   releaseGrapple() {
     if (this.anchor !== -1) {
-      // this.scene.matterCollision.removeOnCollideStart({
-      //   objectA: this.anchor,
-      //   objectB: this.sprite
-      // });
       this.scene.matter.world.remove(this.anchor);
       this.scene.matter.world.removeConstraint(this.grappleLine);
+      this.scene.matterCollision.removeOnCollideStart({
+        objectA: this.anchor,
+        objectB: this.sprite
+      });
     }
   }
 
@@ -139,7 +137,7 @@ export default class Grapple extends Player {
     }
   }
 
-  // doesnt get called on scene restart
+  // doesnt get called on scene restart, bruh
   chDestroy() {
     super.destroy();
     this.noChLoop = true;

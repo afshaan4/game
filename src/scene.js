@@ -2,8 +2,8 @@
 // modified by: skittlemittle
 
 import * as Phaser from "phaser";
-import Char from "./char.js";
-import Grapple from "./grapple";
+import Char from "./characters/char.js";
+import Grapple from "./characters/grapple.js";
 import createRotatingPlatform from "./create-rotating-platform.js";
 
 export default class MainScene extends Phaser.Scene {

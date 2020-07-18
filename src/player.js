@@ -1,4 +1,4 @@
-// generic player functionality
+// generic player logic
 // original author: https://github.com/mikewesthad/phaser-3-tilemap-blog-posts
 // modified by: skittlemittle
 
@@ -43,29 +43,31 @@ export default class Player {
 
     // le inputs
     const {
-      LEFT,
-      RIGHT,
-      UP,
+      I,
+      J,
+      L,
       W,
       A,
       D,
-      Z,
+      N,
+      M,
+      C,
       X
     } = Phaser.Input.Keyboard.KeyCodes;
     this.keys = scene.input.keyboard.addKeys(
       // TODO: janky ass input selector
       this.id === 0 ? {
-        left: LEFT,
-        right: RIGHT,
-        up: UP,
-        z: Z,
-        x: X
+        left: J,
+        right: L,
+        up: I,
+        ability_1: N,
+        ability_2: M
       } : {
         left: A,
         right: D,
         up: W,
-        z: Z,
-        x: X
+        ability_1: C,
+        ability_2: X
       }
     );
   }
