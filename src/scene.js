@@ -60,8 +60,8 @@ export default class MainScene extends Phaser.Scene {
       x,
       y
     } = map.findObject("Spawn", obj => obj.name === "Spawn Point");
-    this.players.push(new Char(this, x, y, 1));
-    this.players.push(new Grapple(this, x, y, 0));
+    this.players.push(new Char(this, x, y, 0));
+    this.players.push(new Grapple(this, x, y, 1));
 
     /* make a camera for each player, yuck make better */
     const {
@@ -166,8 +166,55 @@ export default class MainScene extends Phaser.Scene {
   }
 
   onPlayerWin(player) {
-    this.leaderBoard.push(player.id);
-    console.log(this.leaderBoard);
     this.unsubscribeFinishLine(player);
+    this.leaderBoard.push(player);
+    // yuck
+    let posSuffix = "th";
+    if (this.leaderBoard.length === 1) posSuffix = "st"
+    else if (this.leaderBoard.length === 2) posSuffix = "nd"
+
+    const winMsg = this.add.text(16, 16,
+      `${this.leaderBoard.length}${posSuffix}`, {
+        fontSize: "30px",
+        padding: {
+          x: 10,
+          y: 5
+        },
+        backgroundColor: "#ffffff",
+        fill: "#000000"
+      });
+    winMsg.setScrollFactor(0).setDepth(1000);
+    // LMAOOOOOOOOOO
+    setTimeout(() => {
+      winMsg.destroy();
+    }, 3000);
+
+    this.cams.forEach((camera, index) => {
+      if (index !== player.id) {
+        camera.ignore(winMsg);
+      }
+    });
+    // show le leaderboard
+    if (this.leaderBoard.length === this.players.length) {
+      let msgStr = "";
+      const {
+        width
+      } = this.sys.game.canvas;
+
+      for (const entry of this.leaderBoard) {
+        msgStr += entry.id + "\n";
+      }
+      let leaderBoardMsg = this.add.text(width / 4, 50,
+        msgStr, {
+          fontSize: "45px",
+          padding: {
+            x: 10,
+            y: 5
+          },
+          backgroundColor: "#ffffff",
+          fill: "#000000"
+        });
+      leaderBoardMsg.setScrollFactor(0).setDepth(1000);
+    }
   }
 }
