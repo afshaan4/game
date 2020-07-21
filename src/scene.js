@@ -4,11 +4,11 @@
 import * as Phaser from "phaser";
 import Char from "./characters/char.js";
 import Grapple from "./characters/grapple.js";
-import createRotatingPlatform from "./create-rotating-platform.js";
+import createRotatingPlatform from "./map_modules/create-rotating-platform.js";
 
 export default class MainScene extends Phaser.Scene {
   preload() {
-    this.load.tilemapTiledJSON("map", "../assets/tilemaps/level.json");
+    this.load.tilemapTiledJSON("map", "../assets/tilemaps/lvl.json");
     this.load.image(
       "kenney-tileset-64px-extruded",
       "../assets/tilesets/kenney-tileset-64px-extruded.png"
@@ -30,6 +30,7 @@ export default class MainScene extends Phaser.Scene {
 
   create() {
     this.leaderBoard = [];
+    this.checkpoints = [];
     const map = this.make.tilemap({
       key: "map"
     });
@@ -47,14 +48,11 @@ export default class MainScene extends Phaser.Scene {
       collides: true
     });
 
-    // Get the layers registered with Matter. Any colliding tiles will be given a Matter body. We
-    // haven't mapped our collision shapes in Tiled so each colliding tile will get a default
-    // rectangle body (similar to AP).
+    // so the hitboxes arent just squares
     this.matter.world.convertTilemapLayer(groundLayer);
     this.matter.world.convertTilemapLayer(lavaLayer);
     this.matter.world.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
 
-    // The spawn point is set using a point object inside of Tiled (within the "Spawn" object layer)
     this.players = [];
     const {
       x,
@@ -63,7 +61,7 @@ export default class MainScene extends Phaser.Scene {
     this.players.push(new Char(this, x, y, 0));
     this.players.push(new Grapple(this, x, y, 1));
 
-    /* make a camera for each player, yuck make better */
+    // make a camera for each player, yuck make better
     const {
       width,
       height
@@ -83,7 +81,6 @@ export default class MainScene extends Phaser.Scene {
 
     /* =============map features============= */
 
-    // Load up some crates from the "Crates" object layer created in Tiled
     map.getObjectLayer("Crates").objects.forEach(crateObject => {
       const {
         x,
@@ -91,7 +88,6 @@ export default class MainScene extends Phaser.Scene {
         width,
         height
       } = crateObject;
-
       // Tiled origin for coordinate system is (0, 1), but we want (0.5, 0.5)
       this.matter.add
         .image(x + width / 2, y - height / 2, "block")
@@ -101,35 +97,49 @@ export default class MainScene extends Phaser.Scene {
         });
     });
 
-    // Create platforms at the point locations in the "Platform Locations" layer created in Tiled
     map.getObjectLayer("Platform Locations").objects.forEach(point => {
       createRotatingPlatform(this, point.x, point.y);
     });
 
-    // Create a sensor at rectangle object created in Tiled (under the "Sensors" layer)
-    const rect = map.findObject("Sensors", obj => obj.name === "Celebration");
+    const finishRect = map.findObject("Sensors", obj => obj.name === "Celebration");
     const finishLine = this.matter.add.rectangle(
-      rect.x + rect.width / 2,
-      rect.y + rect.height / 2,
-      rect.width,
-      rect.height, {
-        isSensor: true, // It shouldn't physically interact with other bodies
-        isStatic: true // It shouldn't move
+      finishRect.x + finishRect.width / 2,
+      finishRect.y + finishRect.height / 2,
+      finishRect.width,
+      finishRect.height, {
+        isSensor: true,
+        isStatic: true
       }
     );
+
+    map.getObjectLayer("checkpoints").objects.forEach(checkpoint => {
+      const {
+        x,
+        y,
+        width,
+        height
+      } = checkpoint;
+      const cp = this.matter.add.rectangle(
+        x + width / 2, y + height / 2, width, height, {
+          isSensor: true,
+          isStatic: true
+        }
+      );
+      this.checkpoints.push(cp);
+    });
 
     /* =============the event handling zone============= */
 
     this.players.forEach(player => {
       this.unsubscribePlayerCollide = this.matterCollision.addOnCollideStart({
         objectA: player.sprite,
-        callback: this.onPlayerCollide,
+        callback: eventData => {
+          const {gameObjectB} = eventData;
+          this.onPlayerCollide(player, gameObjectB);
+        },
         context: this
       });
-    });
-
-    // wen the player finishes
-    this.players.forEach(player => {
+      // crossing the finish line
       this.matterCollision.addOnCollideStart({
         objectA: player.sprite,
         objectB: finishLine,
@@ -138,9 +148,18 @@ export default class MainScene extends Phaser.Scene {
         },
         context: this
       });
+      // checkpoints
+      this.matterCollision.addOnCollideStart({
+        objectA: player.sprite,
+        objectB: this.checkpoints,
+        callback: () => {
+          this.updateCheckpoint(player)
+        },
+        context: this
+      });
     });
 
-    // has to be a declaration coz i want it in here
+    // called per player bruv
     this.unsubscribeFinishLine = (player) => {
       this.matterCollision.removeOnCollideStart({
         objectA: player.sprite,
@@ -149,19 +168,14 @@ export default class MainScene extends Phaser.Scene {
     }
   }
 
-  onPlayerCollide({
-    gameObjectB
-  }) {
+  // only put simple stuff in here
+  onPlayerCollide(player, gameObjectB) {
     if (!gameObjectB || !(gameObjectB instanceof Phaser.Tilemaps.Tile)) return;
 
     const tile = gameObjectB;
-
-    // Check the tile property set in Tiled (you could also just check the 
-    // index if you aren't using Tiled in your game)
+    // Check the tile property set in Tiled
     if (tile.properties.isLethal) {
-      // Unsubscribe from collision events so that this logic is run only once
-      // this.unsubscribePlayerCollide();
-      // this.scene.restart();
+      player.jumpToCheckPoint();
     }
   }
 
@@ -188,12 +202,13 @@ export default class MainScene extends Phaser.Scene {
     setTimeout(() => {
       winMsg.destroy();
     }, 3000);
-
+    // genius, i know
     this.cams.forEach((camera, index) => {
       if (index !== player.id) {
         camera.ignore(winMsg);
       }
     });
+
     // show le leaderboard
     if (this.leaderBoard.length === this.players.length) {
       let msgStr = "";
@@ -202,9 +217,9 @@ export default class MainScene extends Phaser.Scene {
       } = this.sys.game.canvas;
 
       for (const entry of this.leaderBoard) {
-        msgStr += entry.id + "\n";
+        msgStr += "Player " + entry.id + "\n";
       }
-      let leaderBoardMsg = this.add.text(width / 4, 50,
+      let leaderBoardMsg = this.add.text(width / 4 - 90, 50,
         msgStr, {
           fontSize: "45px",
           padding: {
@@ -215,6 +230,13 @@ export default class MainScene extends Phaser.Scene {
           fill: "#000000"
         });
       leaderBoardMsg.setScrollFactor(0).setDepth(1000);
+    }
+  }
+
+  updateCheckpoint(player) {
+    player.state.checkpoint = {
+      x: player.sprite.x,
+      y: player.sprite.y
     }
   }
 }

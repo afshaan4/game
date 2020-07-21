@@ -14,6 +14,10 @@ export default class Player {
     this.state = {
       destroyed: false,
       facing: 'R',
+      checkpoint: {
+        x,
+        y
+      },
     }
 
     // Track which sensors are touching something
@@ -156,6 +160,11 @@ export default class Player {
   /* ------ Public methods ------ */
   freeze() {
     this.sprite.setStatic(true);
+  }
+
+  jumpToCheckPoint() {
+    this.sprite.x = this.state.checkpoint.x;
+    this.sprite.y = this.state.checkpoint.y;
   }
 
   update() {
