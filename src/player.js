@@ -49,9 +49,11 @@ export default class Player {
     const {
       I,
       J,
+      K,
       L,
       W,
       A,
+      S,
       D,
       N,
       M,
@@ -64,12 +66,14 @@ export default class Player {
         left: J,
         right: L,
         up: I,
+        down: K,
         ability_1: N,
         ability_2: M
       } : {
         left: A,
         right: D,
         up: W,
+        down: S,
         ability_1: C,
         ability_2: X
       }
@@ -175,6 +179,7 @@ export default class Player {
     const isRightKeyDown = this.keys.right.isDown;
     const isLeftKeyDown = this.keys.left.isDown;
     const isJumpKeyDown = this.keys.up.isDown;
+    const isSlideKeyDown = this.keys.down.isDown;
     const isOnGround = this.isTouching.ground;
     const isInAir = !isOnGround;
 
@@ -186,7 +191,6 @@ export default class Player {
     if (isLeftKeyDown) {
       sprite.setFlipX(true);
       this.state.facing = 'L';
-
       // Don't let the player push things left if they in the air
       if (!(isInAir && this.isTouching.left)) {
         sprite.applyForce({
@@ -197,7 +201,6 @@ export default class Player {
     } else if (isRightKeyDown) {
       sprite.setFlipX(false);
       this.state.facing = 'R';
-
       // Don't let the player push things right if they in the air
       if (!(isInAir && this.isTouching.right)) {
         sprite.applyForce({
@@ -207,11 +210,12 @@ export default class Player {
       }
     }
 
-    // Limit horizontal speed, without this the player's velocity would just keep increasing to
-    // absurd speeds. We don't want to touch the vertical velocity though, so that we don't
-    // interfere with gravity.
+    // Limit horizontal and vertical speed, no fun allowed
     if (velocity.x > 7) sprite.setVelocityX(7);
     else if (velocity.x < -7) sprite.setVelocityX(-7);
+
+    if (velocity.y > 20) sprite.setVelocityY(20);
+    else if (velocity.y < -20) sprite.setVelocityY(-20);
 
     // --- Move the player vertically ---
 
@@ -225,6 +229,15 @@ export default class Player {
         delay: 250,
         callback: () => (this.canJump = true)
       });
+    }
+
+    // --- Super mario world style crouch slide thing ---
+    if (isSlideKeyDown) {
+      this.scene.matter.world.setGravity(0, 2.5);
+      sprite.body.friction = 0.03;
+    } else {
+      this.scene.matter.world.setGravity(0, 1);
+      sprite.body.friction = 0.1;
     }
   }
 

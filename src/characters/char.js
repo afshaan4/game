@@ -1,7 +1,7 @@
 // handles the animations and "abilities" of <charactername>
 // this is just a template really
 import Player from "../player.js";
-import * as Phaser from "phaser";
+// import * as Phaser from "phaser";
 
 export default class Char extends Player {
   constructor(scene, x, y, id, spritesheet = "player") {

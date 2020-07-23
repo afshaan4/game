@@ -134,7 +134,9 @@ export default class MainScene extends Phaser.Scene {
       this.unsubscribePlayerCollide = this.matterCollision.addOnCollideStart({
         objectA: player.sprite,
         callback: eventData => {
-          const {gameObjectB} = eventData;
+          const {
+            gameObjectB
+          } = eventData;
           this.onPlayerCollide(player, gameObjectB);
         },
         context: this
@@ -186,6 +188,7 @@ export default class MainScene extends Phaser.Scene {
     let posSuffix = "th";
     if (this.leaderBoard.length === 1) posSuffix = "st"
     else if (this.leaderBoard.length === 2) posSuffix = "nd"
+    else if (this.leaderBoard.length === 3) posSuffix = "rd"
 
     const winMsg = this.add.text(16, 16,
       `${this.leaderBoard.length}${posSuffix}`, {
