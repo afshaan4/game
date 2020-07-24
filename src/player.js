@@ -24,12 +24,16 @@ export default class Player {
     this.isTouching = {
       left: false,
       right: false,
-      ground: false
+      ground: false,
+      wall: false
     };
 
     // Jumping is going to have a cooldown
     this.canJump = true;
     this.jumpCooldownTimer = null;
+    // give the player a little bonk on the head when they start sliding
+    this.boostSlide = true;
+    this.canWallJump = true;
 
     // Before matter's update, reset our record of which surfaces the player is touching.
     scene.matter.world.on("beforeupdate", this.resetTouching, this);
@@ -146,9 +150,17 @@ export default class Player {
     if (bodyB.isSensor) return; // We only care about collisions with physical objects
     if (bodyA === this.sensors.left) {
       this.isTouching.left = true;
+      // is it a wall
+      if (bodyB.gameObject instanceof Phaser.Physics.Matter.TileBody) {
+        this.isTouching.wall = true;
+      }
       if (pair.separation > 0.5) this.sprite.x += pair.separation - 0.5;
     } else if (bodyA === this.sensors.right) {
       this.isTouching.right = true;
+      // is it a wall
+      if (bodyB.gameObject instanceof Phaser.Physics.Matter.TileBody) {
+        this.isTouching.wall = true;
+      }
       if (pair.separation > 0.5) this.sprite.x -= pair.separation - 0.5;
     } else if (bodyA === this.sensors.bottom) {
       this.isTouching.ground = true;
@@ -159,6 +171,7 @@ export default class Player {
     this.isTouching.left = false;
     this.isTouching.right = false;
     this.isTouching.ground = false;
+    this.isTouching.wall = false;
   }
 
   /* ------ Public methods ------ */
@@ -182,6 +195,7 @@ export default class Player {
     const isSlideKeyDown = this.keys.down.isDown;
     const isOnGround = this.isTouching.ground;
     const isInAir = !isOnGround;
+    if (isOnGround) this.canWallJump = true;
 
     // --- Move the player horizontally ---
 
@@ -221,9 +235,8 @@ export default class Player {
 
     if (isJumpKeyDown && this.canJump && isOnGround) {
       sprite.setVelocityY(-11);
-
-      // Add a slight delay between jumps since the bottom sensor will still collide for a few
-      // frames after a jump is initiated
+      // Add a slight delay between jumps since the bottom sensor will
+      // still collide for a few frames after a jump is initiated
       this.canJump = false;
       this.jumpCooldownTimer = this.scene.time.addEvent({
         delay: 250,
@@ -231,13 +244,20 @@ export default class Player {
       });
     }
 
+    // le walljump? jesus FUCK
+    if (isInAir && this.canWallJump && isJumpKeyDown && this.isTouching.wall) {
+      sprite.setVelocityY(-11);
+      this.canWallJump = false;
+    }
+
     // --- Super mario world style crouch slide thing ---
     if (isSlideKeyDown) {
-      this.scene.matter.world.setGravity(0, 2.5);
-      sprite.body.friction = 0.03;
+      if (this.boostSlide) sprite.setVelocityY(11);
+      sprite.body.friction = 0.01;
+      this.boostSlide = false;
     } else {
-      this.scene.matter.world.setGravity(0, 1);
       sprite.body.friction = 0.1;
+      this.boostSlide = true;
     }
   }
 
