@@ -8,13 +8,12 @@ export default class Char extends Player {
     super(scene, x, y, id, spritesheet);
     this.scene = scene;
     this.id = id;
-    this.spritesheet = spritesheet; //maybe remove
     this.noChLoop = false;
 
     // animations hahahahjasfnkacoaeifcsnkfhlaichlfh
     this.scene.anims.create({
       key: "player-idle",
-      frames: this.scene.anims.generateFrameNumbers(this.spritesheet, {
+      frames: this.scene.anims.generateFrameNumbers(spritesheet, {
         start: 0,
         end: 3
       }),
@@ -23,7 +22,7 @@ export default class Char extends Player {
     });
     this.scene.anims.create({
       key: "player-run",
-      frames: this.scene.anims.generateFrameNumbers(this.spritesheet, {
+      frames: this.scene.anims.generateFrameNumbers(spritesheet, {
         start: 8,
         end: 15
       }),

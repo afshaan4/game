@@ -8,7 +8,6 @@ export default class Grapple extends Player {
     super(scene, x, y, id, spritesheet);
     this.scene = scene;
     this.id = id;
-    this.spritesheet = spritesheet; //maybe remove
     this.anchor = -1;
     this.grappleLine;
     this.noChLoop = false;
@@ -19,7 +18,7 @@ export default class Grapple extends Player {
     // animations hahahahjasfnkacoaeifcsnkfhlaichlfh
     this.scene.anims.create({
       key: "player-idle",
-      frames: this.scene.anims.generateFrameNumbers(this.spritesheet, {
+      frames: this.scene.anims.generateFrameNumbers(spritesheet, {
         start: 0,
         end: 3
       }),
@@ -28,7 +27,7 @@ export default class Grapple extends Player {
     });
     this.scene.anims.create({
       key: "player-run",
-      frames: this.scene.anims.generateFrameNumbers(this.spritesheet, {
+      frames: this.scene.anims.generateFrameNumbers(spritesheet, {
         start: 8,
         end: 15
       }),
@@ -75,7 +74,7 @@ export default class Grapple extends Player {
         isSensor: true
       });
     }
-    this.grappleLine = this.scene.matter.add.constraint(this.sprite,this.anchor, 0, 0.007);
+    this.grappleLine = this.scene.matter.add.constraint(this.sprite, this.anchor, 0, 0.007);
 
     // grapple cooldown
     this.canGrapple = false;

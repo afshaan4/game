@@ -179,6 +179,10 @@ export default class MainScene extends Phaser.Scene {
     if (tile.properties.isLethal) {
       player.jumpToCheckPoint();
     }
+    if (tile.properties.boosts) {
+      const boostVel =  player.state.facing === 'R' ? 7 : -7;
+      player.sprite.setVelocityX(player.sprite.body.velocity.x + boostVel);
+    }
   }
 
   onPlayerWin(player) {

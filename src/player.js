@@ -225,8 +225,8 @@ export default class Player {
     }
 
     // Limit horizontal and vertical speed, no fun allowed
-    if (velocity.x > 7) sprite.setVelocityX(7);
-    else if (velocity.x < -7) sprite.setVelocityX(-7);
+    if (velocity.x > 10) sprite.setVelocityX(10);
+    else if (velocity.x < -10) sprite.setVelocityX(-10);
 
     if (velocity.y > 20) sprite.setVelocityY(20);
     else if (velocity.y < -20) sprite.setVelocityY(-20);
@@ -243,7 +243,6 @@ export default class Player {
         callback: () => (this.canJump = true)
       });
     }
-
     // le walljump? jesus FUCK
     if (isInAir && this.canWallJump && isJumpKeyDown && this.isTouching.wall) {
       sprite.setVelocityY(-11);
