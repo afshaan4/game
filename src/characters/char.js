@@ -1,6 +1,9 @@
 // handles the animations and "abilities" of <charactername>
 // this is just a template really
-import Player from "../player.js";
+import {
+  Player,
+  possibleActions
+} from "../player.js";
 // import * as Phaser from "phaser";
 
 export default class Char extends Player {
@@ -52,10 +55,11 @@ export default class Char extends Player {
 
     const isOnGround = this.isTouching.ground;
 
-    // Update the animation/texture based on the state of the player's state
-    if (isOnGround) {
-      if (this.sprite.body.force.x !== 0) this.sprite.anims.play("player-run", true);
-      else this.sprite.anims.play("player-idle", true);
+    // change animations
+     if (this.state.action === possibleActions.idle) {
+      this.sprite.anims.play("player-idle", true);
+    } else if (this.state.action == possibleActions.running && isOnGround) {
+      this.sprite.anims.play("player-run", true);
     } else {
       this.sprite.anims.stop();
       this.sprite.setTexture("player", 10);

@@ -4,14 +4,26 @@
 
 import * as Phaser from "phaser";
 
-export default class Player {
+// for animations and the like
+export const possibleActions = {
+  idle: 0,
+  running: 1,
+  jumping: 2,
+  sliding: 3,
+  falling: 4,
+  specialMove: 5
+};
+Object.freeze(possibleActions);
+
+export class Player {
   constructor(scene, x, y, id, spritesheet) {
     this.scene = scene;
     this.id = id;
     this.sprite = this.createPlayerCharachter(x, y, spritesheet);
 
-    // player state
+    // player state, stuff for other classes
     this.state = {
+      action: possibleActions.idle,
       destroyed: false,
       facing: 'R',
       checkpoint: {
@@ -211,6 +223,7 @@ export default class Player {
           x: -moveForce,
           y: 0
         });
+        this.state.action = possibleActions.running;
       }
     } else if (isRightKeyDown) {
       sprite.setFlipX(false);
@@ -221,6 +234,7 @@ export default class Player {
           x: moveForce,
           y: 0
         });
+        this.state.action = possibleActions.running;
       }
     }
 
@@ -242,11 +256,13 @@ export default class Player {
         delay: 250,
         callback: () => (this.canJump = true)
       });
+      this.state.action = possibleActions.jumping;
     }
     // le walljump? jesus FUCK
     if (isInAir && this.canWallJump && isJumpKeyDown && this.isTouching.wall) {
       sprite.setVelocityY(-11);
       this.canWallJump = false;
+      this.state.action = possibleActions.jumping;
     }
 
     // --- Super mario world style crouch slide thing ---
@@ -254,9 +270,21 @@ export default class Player {
       if (this.boostSlide) sprite.setVelocityY(11);
       sprite.body.friction = 0.01;
       this.boostSlide = false;
+      this.state.action = possibleActions.sliding;
     } else {
       sprite.body.friction = 0.1;
       this.boostSlide = true;
+    }
+
+    // -- idle states --
+    if (this.sprite.body.force.x === 0) {
+      if (isOnGround) {
+        this.state.action = possibleActions.idle;
+      } else if (this.sprite.body.velocity.y >= 0) {
+        this.state.action = possibleActions.falling;
+      } else {
+        this.state.action = possibleActions.jumping;
+      }
     }
   }
 
