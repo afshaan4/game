@@ -1,12 +1,13 @@
 // original author: https://github.com/mikewesthad/phaser-3-tilemap-blog-posts
 // modified by: skittlemittle
 
-import * as Phaser from "phaser";
-import Char from "./characters/char.js";
-import Grapple from "./characters/grapple.js";
-import createRotatingPlatform from "./map_modules/create-rotating-platform.js";
+import StateMachine from "./StateMachine.js";
+import Char from "../characters/char.js";
+import Grapple from "../characters/grapple.js";
+import createRotatingPlatform from "../map_modules/create-rotating-platform.js";
+import CountDown from "./countDown.js";
 
-export default class MainScene extends Phaser.Scene {
+export default class MainScene extends StateMachine {
   preload() {
     this.load.tilemapTiledJSON("map", "../assets/tilemaps/lvl.json");
     this.load.image(
@@ -31,6 +32,7 @@ export default class MainScene extends Phaser.Scene {
   create() {
     this.leaderBoard = [];
     this.checkpoints = [];
+    this.players = [];
     const map = this.make.tilemap({
       key: "map"
     });
@@ -53,7 +55,7 @@ export default class MainScene extends Phaser.Scene {
     this.matter.world.convertTilemapLayer(lavaLayer);
     this.matter.world.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
 
-    this.players = [];
+    // make players
     const {
       x,
       y
@@ -128,6 +130,9 @@ export default class MainScene extends Phaser.Scene {
       this.checkpoints.push(cp);
     });
 
+    /* =============Start up the game=============*/
+    
+    this.setState(new CountDown(this));
     /* =============the event handling zone============= */
 
     this.players.forEach(player => {
@@ -137,7 +142,7 @@ export default class MainScene extends Phaser.Scene {
           const {
             gameObjectB
           } = eventData;
-          this.onPlayerCollide(player, gameObjectB);
+          this.state.onPlayerCollide(player, gameObjectB);
         },
         context: this
       });
@@ -146,7 +151,7 @@ export default class MainScene extends Phaser.Scene {
         objectA: player.sprite,
         objectB: finishLine,
         callback: () => {
-          this.onPlayerWin(player)
+          this.state.onPlayerWin(player)
         },
         context: this
       });
@@ -155,7 +160,7 @@ export default class MainScene extends Phaser.Scene {
         objectA: player.sprite,
         objectB: this.checkpoints,
         callback: () => {
-          this.updateCheckpoint(player)
+          this.state.updateCheckpoint(player)
         },
         context: this
       });
@@ -167,83 +172,6 @@ export default class MainScene extends Phaser.Scene {
         objectA: player.sprite,
         objectB: finishLine
       });
-    }
-  }
-
-  // only put simple stuff in here
-  onPlayerCollide(player, gameObjectB) {
-    if (!gameObjectB || !(gameObjectB instanceof Phaser.Tilemaps.Tile)) return;
-
-    const tile = gameObjectB;
-    // Check the tile property set in Tiled
-    if (tile.properties.isLethal) {
-      player.jumpToCheckPoint();
-    }
-    if (tile.properties.boosts) {
-      const boostVel =  player.state.facing === 'R' ? 7 : -7;
-      player.sprite.setVelocityX(player.sprite.body.velocity.x + boostVel);
-    }
-  }
-
-  onPlayerWin(player) {
-    this.unsubscribeFinishLine(player);
-    this.leaderBoard.push(player);
-    // yuck
-    let posSuffix = "th";
-    if (this.leaderBoard.length === 1) posSuffix = "st"
-    else if (this.leaderBoard.length === 2) posSuffix = "nd"
-    else if (this.leaderBoard.length === 3) posSuffix = "rd"
-
-    const winMsg = this.add.text(16, 16,
-      `${this.leaderBoard.length}${posSuffix}`, {
-        fontSize: "30px",
-        padding: {
-          x: 10,
-          y: 5
-        },
-        backgroundColor: "#ffffff",
-        fill: "#000000"
-      });
-    winMsg.setScrollFactor(0).setDepth(1000);
-    // LMAOOOOOOOOOO
-    setTimeout(() => {
-      winMsg.destroy();
-    }, 3000);
-    // genius, i know
-    this.cams.forEach((camera, index) => {
-      if (index !== player.id) {
-        camera.ignore(winMsg);
-      }
-    });
-
-    // show le leaderboard
-    if (this.leaderBoard.length === this.players.length) {
-      let msgStr = "";
-      const {
-        width
-      } = this.sys.game.canvas;
-
-      for (const entry of this.leaderBoard) {
-        msgStr += "Player " + entry.id + "\n";
-      }
-      let leaderBoardMsg = this.add.text(width / 4 - 90, 50,
-        msgStr, {
-          fontSize: "45px",
-          padding: {
-            x: 10,
-            y: 5
-          },
-          backgroundColor: "#ffffff",
-          fill: "#000000"
-        });
-      leaderBoardMsg.setScrollFactor(0).setDepth(1000);
-    }
-  }
-
-  updateCheckpoint(player) {
-    player.state.checkpoint = {
-      x: player.sprite.x,
-      y: player.sprite.y
     }
   }
 }
