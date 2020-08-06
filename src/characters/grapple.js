@@ -1,7 +1,10 @@
 // handles the animations and "abilities" of grappling hook charachter
 
 import * as Phaser from "phaser";
-import Player from "../player.js";
+import {
+  Player,
+  possibleActions
+} from "./player.js";
 
 export default class Grapple extends Player {
   constructor(scene, x, y, id, spritesheet = "player") {
@@ -104,7 +107,7 @@ export default class Grapple extends Player {
         context: this
       });
     }
-
+    this.state.action = possibleActions.specialMove;
   }
 
   /* destroys the constraint and anchor made by launchGrapple() */
@@ -126,14 +129,15 @@ export default class Grapple extends Player {
 
     const isOnGround = this.isTouching.ground;
 
-    // Update the animation/texture based on the state of the player's state
-    if (isOnGround) {
-      if (this.sprite.body.force.x !== 0) this.sprite.anims.play("player-run", true);
-      else this.sprite.anims.play("player-idle", true);
-    } else {
-      this.sprite.anims.stop();
-      this.sprite.setTexture("player", 10);
-    }
+   // change animations
+   if (this.state.action === possibleActions.idle) {
+     this.sprite.anims.play("player-idle", true);
+   } else if (this.state.action == possibleActions.running && isOnGround) {
+     this.sprite.anims.play("player-run", true);
+   } else {
+     this.sprite.anims.stop();
+     this.sprite.setTexture("player", 10);
+   }
   }
 
   // doesnt get called on scene restart, bruh

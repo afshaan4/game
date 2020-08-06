@@ -1,6 +1,6 @@
 import * as Phaser from "phaser";
 import PhaserMatterCollisionPlugin from "phaser-matter-collision-plugin/src";
-import MainScene from "./scene.js";
+import MainScene from "./scene/scene.js";
 
 const config = {
   type: Phaser.AUTO,
