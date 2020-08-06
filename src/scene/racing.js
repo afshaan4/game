@@ -1,10 +1,10 @@
 // main gameloop state
 
 import {Tilemaps} from "phaser";
-import State from "./State.js";
+import SceneState from "./sceneState.js";
 import GameOver from "./gameOver.js";
 
-export default class Racing extends State {
+export default class Racing extends SceneState {
   constructor(scene) {
     super(scene)
   }

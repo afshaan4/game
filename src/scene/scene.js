@@ -1,13 +1,24 @@
 // original author: https://github.com/mikewesthad/phaser-3-tilemap-blog-posts
 // modified by: skittlemittle
 
-import StateMachine from "./StateMachine.js";
+import * as Phaser from "phaser";
 import Char from "../characters/char.js";
 import Grapple from "../characters/grapple.js";
 import createRotatingPlatform from "../map_modules/create-rotating-platform.js";
 import CountDown from "./countDown.js";
 
-export default class MainScene extends StateMachine {
+export default class MainScene extends Phaser.Scene {
+  constructor() {
+    super();
+    this.state = null;
+  }
+
+  // the derived state classes are responsible changing the state
+  setState(nextState) {
+    this.state = nextState;
+    this.state.start();
+  }
+
   preload() {
     this.load.tilemapTiledJSON("map", "../assets/tilemaps/lvl.json");
     this.load.image(
@@ -131,7 +142,7 @@ export default class MainScene extends StateMachine {
     });
 
     /* =============Start up the game=============*/
-    
+
     this.setState(new CountDown(this));
     /* =============the event handling zone============= */
 

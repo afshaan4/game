@@ -1,7 +1,10 @@
-// le epic abstract state class
+// le epic "abstract" state class
 
-export default class State {
+export default class SceneState {
   constructor(scene) {
+    if (this.constructor === SceneState) {
+      throw new Error("State is an abstract class, dont instantiate it");
+    }
     this.scene = scene
   }
 

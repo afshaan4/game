@@ -3,7 +3,7 @@
 import {
   Player,
   possibleActions
-} from "../player.js";
+} from "./player.js";
 // import * as Phaser from "phaser";
 
 export default class Char extends Player {

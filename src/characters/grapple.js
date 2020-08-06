@@ -4,7 +4,7 @@ import * as Phaser from "phaser";
 import {
   Player,
   possibleActions
-} from "../player.js";
+} from "./player.js";
 
 export default class Grapple extends Player {
   constructor(scene, x, y, id, spritesheet = "player") {

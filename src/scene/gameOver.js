@@ -1,8 +1,8 @@
 // game over state
 
-import State from "./State.js"
+import SceneState from "./sceneState.js"
 
-export default class GameOver extends State {
+export default class GameOver extends SceneState {
   constructor(scene) {
     super(scene)
   }

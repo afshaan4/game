@@ -1,9 +1,9 @@
 // race start countdown
 
-import State from "./State.js"
+import SceneState from "./sceneState.js"
 import Racing from "./racing.js"
 
-export default class CountDown extends State {
+export default class CountDown extends SceneState {
   constructor(scene) {
     super(scene)
   }
