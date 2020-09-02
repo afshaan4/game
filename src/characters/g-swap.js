@@ -12,7 +12,8 @@ export default class Gswap extends Player {
     this.scene = scene;
     this.id = id;
     this.noChLoop = false;
-    this.attractor;
+    this.boostFlip = true;
+    this.attractor = -1;
 
     // animations hahahahjasfnkacoaeifcsnkfhlaichlfh
     this.scene.anims.create({
@@ -36,12 +37,13 @@ export default class Gswap extends Player {
 
     /* ability key event handlers */
     this.keys.ability_1.on('down', () => {
-      // flip gravity, apply -2G
       this.swapGravity();
+      if (this.boostFlip) this.sprite.setVelocityY(-11);
+      this.boostFlip = false;
     });
     this.keys.ability_1.on('up', () => {
-      // unflip gravity, remove le force
-      this.isFlipped = false;
+      this.resetGravity();
+      this.boostFlip = true;
     });
 
     this.scene.events.on("update", this.chUpdate, this);
@@ -51,26 +53,38 @@ export default class Gswap extends Player {
 
   /* ------ Private methods ------ */
   swapGravity() {
-    const {
-      x,
-      y
-    } = this.sprite.body.position;
-
-    if (this.attractor === null) {
-      this.attractor = this.scene.matter.add.circle(x, -1000, 1, {
-          isStatic: true
-        },
+    this.sprite.setIgnoreGravity(true);
+    const x = this.sprite.body.position.x;
+    this.sprite.setFlipY(true);
+    // circle that pulls the player
+    if (this.attractor !== null) {
+      this.attractor = this.scene.matter.add.circle(x, 0, 1, {
+        ignoreGravity: true,
         plugin: {
           attractors: [
             (bodyA, bodyB) => {
-              return {
-                // x, y
-              };
+              if (bodyB === this.sprite.body) {
+                return {
+                  x: 0,
+                  y: (bodyA.position.y - bodyB.position.y) * 500
+                };
+              }
             }
           ]
-        });
+        }
+      });
     } else {
-      // move the thing
+      // keep it directly above the player
+      this.attractor.body.position.x = x;
+    }
+  }
+
+  resetGravity() {
+    this.sprite.setIgnoreGravity(false);
+    this.sprite.setFlipY(false);
+
+    if (this.attractor !== -1) {
+      this.scene.matter.world.remove(this.attractor);
     }
   }
 

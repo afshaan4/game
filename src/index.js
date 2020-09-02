@@ -6,13 +6,17 @@ const config = {
   type: Phaser.AUTO,
   width: 900,
   height: 500,
-  scene: MainScene,
   pixelArt: true,
+  scene: MainScene,
   physics: {
-    default: "matter"
+    default: "matter",
+    matter: {
+      plugins: {
+        attractors: true
+      }
+    }
   },
   plugins: {
-    attractors: true,
     scene: [{
       plugin: PhaserMatterCollisionPlugin,
       key: "matterCollision",
