@@ -2,9 +2,9 @@
 
 import {Tilemaps} from "phaser";
 import SceneState from "./sceneState.js";
-import GameOver from "./gameOver.js";
+import GameOverState from "./gameOverState.js";
 
-export default class Racing extends SceneState {
+export default class RacingState extends SceneState {
   constructor(scene) {
     super(scene)
   }
@@ -60,7 +60,7 @@ export default class Racing extends SceneState {
     // race over, show leaderboard
     if (ldrBoard.length === this.scene.players.length) {
       // this.showLeaderBoard();
-      this.scene.setState(new GameOver(this.scene));
+      this.scene.setState(new GameOverState(this.scene));
     }
   }
 

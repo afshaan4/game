@@ -2,13 +2,14 @@
 
 import SceneState from "./sceneState.js"
 
-export default class GameOver extends SceneState {
+export default class GameOverState extends SceneState {
   constructor(scene) {
     super(scene)
   }
   
   start() {
     this.showLeaderBoard();
+    this.scene.players.forEach(p => p.freeze());
   }
 
   showLeaderBoard() {

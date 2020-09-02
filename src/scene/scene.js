@@ -2,10 +2,10 @@
 // modified by: skittlemittle
 
 import * as Phaser from "phaser";
-import Char from "../characters/char.js";
+import Gswap from "../characters/g-swap.js";
 import Grapple from "../characters/grapple.js";
 import createRotatingPlatform from "../map_modules/create-rotating-platform.js";
-import CountDown from "./countDown.js";
+import CountDownState from "./countDownState.js";
 
 export default class MainScene extends Phaser.Scene {
   constructor() {
@@ -71,7 +71,7 @@ export default class MainScene extends Phaser.Scene {
       x,
       y
     } = map.findObject("Spawn", obj => obj.name === "Spawn Point");
-    this.players.push(new Char(this, x, y, 0));
+    this.players.push(new Gswap(this, x, y, 0));
     this.players.push(new Grapple(this, x, y, 1));
 
     // make a camera for each player, yuck make better
@@ -143,7 +143,7 @@ export default class MainScene extends Phaser.Scene {
 
     /* =============Start up the game=============*/
 
-    this.setState(new CountDown(this));
+    this.setState(new CountDownState(this));
     /* =============the event handling zone============= */
 
     this.players.forEach(player => {

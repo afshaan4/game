@@ -12,6 +12,7 @@ const config = {
     default: "matter"
   },
   plugins: {
+    attractors: true,
     scene: [{
       plugin: PhaserMatterCollisionPlugin,
       key: "matterCollision",

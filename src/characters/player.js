@@ -191,6 +191,10 @@ export class Player {
     this.sprite.setStatic(true);
   }
 
+  unFreeze() {
+    this.sprite.setStatic(false);
+  }
+
   jumpToCheckPoint() {
     this.sprite.x = this.state.checkpoint.x;
     this.sprite.y = this.state.checkpoint.y;
